@@ -11,8 +11,6 @@ Program to locate the baselines in handwritten text pages
         * Easy and fast to set up. Roughly, around 15 minutes to anotate a page, 3 minutes to train an [Extremely Randomized Trees Classifier](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.65.7485&rep=rep1&type=pdf) and 3 seconds per page to get the baselines
         * Mainly for academic use. 
 
-[//]: <> (* Check the last changes[Chagelog](https://github.com/RParedesPalacios/Layers/blob/masterXX/src/readme.md#changelog)
-
 
 ## Usage
 #### To train an ert classifier with more than one page
