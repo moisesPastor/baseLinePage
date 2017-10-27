@@ -2,12 +2,7 @@
 Program to locate the baselines in handwritten text pages
 * A toolkit to find the text baselines in pages.
 
-[//]: <> (This is also a comment.)
-
-
-
 * BaseLinPages is written in C++. 
-
 
 * BaseLinPages uses [OpenV](https://opencv.org) and [Bash shell](https://es.wikipedia.org/wiki/Bash)
 
