@@ -3,6 +3,7 @@ OPEN_LIBS=-lopencv_imgproc -lopencv_core  -lopencv_highgui
 OTHER_LIBS=-lpugixml
 
 all: 
+	mkdir ../BIN || echo "../BIN directory already exists"
 	make -C clusterLinies;
 	make -C imageLocalExtrema 
 	make -C Extremely_Randomized_Trees
