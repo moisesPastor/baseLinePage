@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     autosave = false;
     overwrite = true;
     mode = LINE_MODE;
+    setWindowTitle("GT_Tool_PAGE Baseline mode");
     data=0;
     setCentralWidget(viewport);
     createMenuBar();
