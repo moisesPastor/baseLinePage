@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     filelist = 0;
     autosave = false;
     overwrite = true;
-    mode = LAYOUT_MODE;
+    mode = LINE_MODE;
     data=0;
     setCentralWidget(viewport);
     createMenuBar();
@@ -57,7 +57,8 @@ MainWindow::MainWindow(char* filename, bool single, QWidget *parent)
     filelist = 0;
     autosave = false;
     overwrite = true;
-    mode = LAYOUT_MODE;
+    mode = LINE_MODE;
+    setWindowTitle("GT_Tool_PAGE Baseline mode");
     data=0;
     setCentralWidget(viewport);
     createMenuBar();
@@ -242,9 +243,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
             viewport->setFocus();
             break;
         case Qt::Key_F1:
-            modeLayout();
+  	    setWindowTitle("GT_Tool_PAGE Layout mode");
+	    modeLayout();
             break;
         case Qt::Key_F2:
+	    setWindowTitle("GT_Tool_PAGE Baseline mode");
             modeLines();
             break;
         case Qt::Key_S: // Save
@@ -374,9 +377,10 @@ void MainWindow::loadFile(char* filename, bool single){
     file_total->setText(filetotal);
     if(viewport){
         loadDocument();
-        viewport->loadImage(data->get_image_Filename());
+        bool isThereAImageLoad = viewport->loadImage(data->get_image_Filename());
         viewport->setRegions(data->get_regions());
-        viewport->updateGL();
+	if (isThereAImageLoad)
+	  viewport->updateGL();
     }
     updateImgCount();
 }
@@ -471,7 +475,7 @@ void MainWindow::updateSettings(QMap<QString, QVariant> &settings){
 }
 
 void MainWindow::updateID(QString id){
-    id_selected_item->setText(id);
+  id_selected_item->setText(id);
 }
 
 void MainWindow::loadSingleFile(){

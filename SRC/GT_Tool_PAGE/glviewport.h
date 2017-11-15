@@ -84,7 +84,7 @@ protected:
 
     void calculateRegionHandles();
     void recalculateRegionHandles();
-
+    bool isPointInsideReg(int x, int y,  QVector<Point> region);
 public:
 
     explicit GLViewport(QWidget *parent = 0);
@@ -100,7 +100,7 @@ public:
     int getimg_width(){return img_width;}
     int getimg_height(){return img_height;}
 
-    void loadImage(QString imageFileName);
+    bool loadImage(QString imageFileName);
 
     void setRegions(QVector<TextRegion> *nregions);
 

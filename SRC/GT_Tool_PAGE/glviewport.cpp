@@ -375,11 +375,11 @@ void GLViewport::setRegions(QVector<TextRegion> *nregions){
     calculateRegionHandles();
 }
 
-void GLViewport::loadImage(QString imageFileName){
+bool GLViewport::loadImage(QString imageFileName){
     QImage *image = new QImage();
     if(!image->load(imageFileName)){
         QMessageBox::critical(this,"Error","Could not open image file");
-        return;
+        return false;
     }
 
     QImage GL_formated_image;
@@ -437,6 +437,7 @@ void GLViewport::loadImage(QString imageFileName){
     resizeGL(win_width,win_height);
 
     delete image;
+    return true;
 }
 
 void GLViewport::wheelEvent(QWheelEvent *event){
@@ -451,6 +452,18 @@ void GLViewport::wheelEvent(QWheelEvent *event){
            updateGL();
        }
     }
+}
+bool  GLViewport::isPointInsideReg(int x, int y,  QVector<Point> region){
+  int j = region.size() - 1;
+  bool res = false;
+  
+  for( int i=0; i< region.size(); i++){
+    if ((region[i].y > y) != (region[j].y > y) &&  (x < region[i].x + (region[j].x - region[i].x) * (y - region[i].y) / (region[j].y - region[i].y))){
+	res = ! res;
+      }
+    j = i;
+  }
+  return res;
 }
 
 void GLViewport::mousePressEvent(QMouseEvent *event){
@@ -479,6 +492,7 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
             int pos_x,pos_y;
             pos_x= zoom*(event->x() - win_width/2) + cam_x;
             pos_y= zoom*(win_height/2 - event->y()) + cam_y;
+	    
             if(mode == LAYOUT_MODE){
                 if(event->modifiers() & Qt::ControlModifier){
                     selected_region = 0;
@@ -493,7 +507,6 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
                             unfinished_figure = false;
                             calculateRegionHandles();
                         }
-
                     }else{ // Start new layout
                         MainWindow *mw = (MainWindow*)main_window;
                         TextRegion newregion;
@@ -505,16 +518,17 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
                         unfinished_figure = true;
                         next_point = 1;
                         regions->push_back(newregion);
+			
                     }
-                    modified = true;
-                }else if(event->modifiers() & Qt::ShiftModifier){ // Label change
+                  
+                }else if(event->modifiers() & Qt::ShiftModifier){ 
                     if(selected_region){
                         selected_point = 0;
                         selected_region->type = mw->nextLabel(selected_region->type);
                         modified = true;
                         updateLabelCombobox(selected_region->type);
                     }
-                }else{ // Region/point/handle selection
+                } else{ // Region/point/handle selection
                     selected_region=0;
                     selected_region_index = -1;
                     selected_point=0;
@@ -552,7 +566,8 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
                         }
                     }
                 }
-            }else if(mode == LINE_MODE){
+            }else if(mode == LINE_MODE){	     
+	      
                 if(event->modifiers() & Qt::ControlModifier){
                     selected_point = 0;
                     selected_point_index = -1;
@@ -561,44 +576,59 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
                     selected_line_index = -1;
                     int nx = pos_x + img_width/2;
                     int ny = img_height/2 - pos_y;
+		    int reg_num_selected=0;
+		    bool regionFound=false;
+		    for (int reg = 0; reg < regions->size() && !regionFound; reg++) {			  			  
+			  selected_region = &(*regions)[reg];
+			  if(isPointInsideReg(nx,ny, selected_region->coords)){
+			    regionFound=true;
+			    
+			    reg_num_selected=reg;
+			    break;
+			  }
+		    }
+		    if(!regionFound){
+			  QMessageBox::critical(this,"Error","No region exists in this place.  Can't add points");
+			  return;
+		    }
+			   
+		    
                     if(event->modifiers() & Qt::ShiftModifier){ // New line
                         TextLine nline;
-                        nline.id = generateNewID("l");
-                        nline.baseline.append(Point(nx, ny));
-                        selected_region->lines.append(nline);
-                        modified = true;
+			nline.id = generateNewID("l");
+			nline.baseline.append(Point(nx, ny));
+			selected_region->lines.append(nline);
+			modified = true;
+			
                     }else{ // Add point to existing lines
                         bool exist_lines = false;
                         int closest_line=0;
-			int closest_region=0;
                         int index=0;
-                        int dist=99999999;
-			for (int reg = 0; reg < regions->size(); reg++) {			  
-
-			  selected_region = &(*regions)[reg];
-			  for(int i=0; i<selected_region->lines.size(); i++){
-                            exist_lines = true;
-                            int j=0;
-                            while(j < selected_region->lines[i].baseline.size() && nx > selected_region->lines[i].baseline[j].x)
-			      j++;
-                            int indtemp = j;
-                            if(j==selected_region->lines[i].baseline.size() || (j > 0 &&
-                               selected_region->lines[i].baseline[j].x - nx > nx - selected_region->lines[i].baseline[j-1].x))
-			      j--;
-                            int ndist = ny - selected_region->lines[i].baseline[j].y;
-			    
-                            if(ndist < 0)
+                        int dist=INT_MAX;		
+			
+		 
+			for(int i=0; i<selected_region->lines.size(); i++){
+			  exist_lines = true;
+			  int j=0;
+			  while(j < selected_region->lines[i].baseline.size() && nx > selected_region->lines[i].baseline[j].x)
+			    j++;
+			  int indtemp = j;
+			  if(j==selected_region->lines[i].baseline.size() || (j > 0 &&
+									      selected_region->lines[i].baseline[j].x - nx > nx - selected_region->lines[i].baseline[j-1].x))
+			    j--;
+			  int ndist = ny - selected_region->lines[i].baseline[j].y;
+			  
+			  if(ndist < 0)
                                 ndist = ndist*(-1);
-                            if(ndist <= dist){
-			      dist = ndist;
-			      closest_line = i;
-			      closest_region=reg;
-			      index = indtemp;
-                            }
+			  if(ndist <= dist){
+			    dist = ndist;
+			    closest_line = i;
+			    index = indtemp;
 			  }
 			}
+			
                         if(exist_lines){
-			  selected_region = &(*regions)[closest_region];
+			  selected_region = &(*regions)[reg_num_selected];
 			  selected_region->lines[closest_line].baseline.insert(index,Point(nx,ny));
 			  modified = true;
                         }else{
