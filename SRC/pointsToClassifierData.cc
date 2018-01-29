@@ -28,11 +28,13 @@
 using namespace std;
 using namespace cv;
 
-int NUMCOLS_CONTEXT=100;
+int NUMCOLS_CONTEXT=130;
 int NUMROWS_CONTEXT=50; 
 
-const int FINALCOLS=50;
-const int FINALROWS=30;
+//const int FINALCOLS=50;
+//const int FINALROWS=30;
+const int FINALCOLS=25;
+const int FINALROWS=15;
 
 
 class labeledpoint{

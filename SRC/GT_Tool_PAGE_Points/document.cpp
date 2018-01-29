@@ -457,6 +457,7 @@ Document::Document(QWidget *parent){
     comments="";
     imageFilename="";
     imageWidth=imageHeight=0;
+    state=-1;
 }
 
 Document::~Document(){}

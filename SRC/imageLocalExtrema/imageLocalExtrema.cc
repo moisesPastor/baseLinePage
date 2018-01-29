@@ -218,8 +218,9 @@ int main(int argc, char* argv[]) {
   threshold(img, img, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
   Mat kernel = getStructuringElement(  MORPH_ELLIPSE,  Size(1,5),  Point( 0, 0 ) );
-  erode(img,img,kernel);
-
+  //erode(img,img,kernel);
+  dilate(img,img,kernel);
+  
   GaussianBlur( img, img, Size( 5, 5 ),3,3);
   
   Mat img_edge(img.rows, img.cols, CV_8UC1, 1);
@@ -235,6 +236,7 @@ int main(int argc, char* argv[]) {
   //finding local min points
    vector<Point>  selected_min;
 
+  cout << contours.size() << endl;
    //  cerr << "contour: Total Contours Detected: "<<  contours.size() << endl;
    for (unsigned int c=0; c < contours.size(); c++){
      if (contours[c].size() > pTallMin && hierarchy[c][3] != -1  ) { //hierarchy[c][3] != -1 -> no parents
