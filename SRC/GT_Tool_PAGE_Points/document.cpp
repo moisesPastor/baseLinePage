@@ -475,7 +475,8 @@ void Document::writeDocumentAttributes(QXmlStreamWriter &xml){
     attributes.append("xmlns","http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15");
     attributes.append("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance");
     attributes.append("xsi:schemaLocation","http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15/pagecontent.xsd");
-    attributes.append("pcGtsId",pcGtsId);
+    if (pcGtsId.size() > 0)
+      attributes.append("pcGtsId",pcGtsId);
     xml.writeAttributes(attributes);
 }
 
@@ -531,7 +532,8 @@ void Document::writeCoords(QXmlStreamWriter &xml, Coords &coords, QString name){
     }
    
     values+=QString::number(coords.at(coords.size()-1).x) +","+ QString::number(coords.at(coords.size()-1).y);
-  
+
+    cout << values.toStdString() << endl;
     QXmlStreamAttributes attributes;
     attributes.append("points",values);
      xml.writeAttributes(attributes);
