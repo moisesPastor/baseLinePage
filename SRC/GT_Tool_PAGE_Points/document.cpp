@@ -532,8 +532,8 @@ void Document::writeCoords(QXmlStreamWriter &xml, Coords &coords, QString name){
     }
    
     values+=QString::number(coords.at(coords.size()-1).x) +","+ QString::number(coords.at(coords.size()-1).y);
-
-    cout << values.toStdString() << endl;
+    //cout << coords.size()<< " --> "<< values.toStdString() << endl;
+    
     QXmlStreamAttributes attributes;
     attributes.append("points",values);
      xml.writeAttributes(attributes);

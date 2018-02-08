@@ -58,6 +58,8 @@ GLViewport::GLViewport(QWidget *parent) :
     selected_point_type=-1;
     regions=0;
     lines=0;
+    dist_maxima_UP_toBaseline=15;
+    dist_maxima_DOWN_toBaseline=10;
     minimaPoints=0;
     last_line_ID_index=0;
     last_region_ID_index=0;
@@ -582,7 +584,9 @@ inline int calc_y(Point startPoint, Point endPoint, int x){
 
 
 /*****************************************************/
-void GLViewport::getPointClasses(int dist_maxima_UP, int dist_maxima_DOWN){ 
+void GLViewport::getPointClasses(){ 
+
+  if (!minimaPoints) return; //no points loaded
   
   // completar baselines
   vector< vector< Point > >  baseLines_completesX(0);
@@ -618,17 +622,17 @@ void GLViewport::getPointClasses(int dist_maxima_UP, int dist_maxima_DOWN){
       if (x >=  baseLines_completesX[l][0].x && x <=  baseLines_completesX[l][baseLines_completesX[l].size()-1].x){ //esta dins del domini de la x de la polylinia?
 
         float dist= (*minimaPoints)[p].y-baseLines_completesX[l][pLines].y;
-        if (dist<=0 && -dist <= minimaDistUP){
+        if (dist<=0 && -dist <= dist_maxima_UP_toBaseline){
           classUP=l;
           minimaDistUP=-dist;
-        } else  if (dist >= 0 && dist <= minimaDistDOWN){
+        } else  if (dist >= 0 && dist <= dist_maxima_DOWN_toBaseline){
           classDOWN=l;
           minimaDistDOWN=dist;
 	}
       }
     }
    
-    if ((classUP < 0 && classDOWN <0) || (minimaDistUP > dist_maxima_UP && minimaDistDOWN > dist_maxima_DOWN))
+    if ((classUP < 0 && classDOWN <0) || (minimaDistUP > dist_maxima_UP_toBaseline && minimaDistDOWN > dist_maxima_DOWN_toBaseline))
       (*pointClases)[p]=false;
     else 
       (*pointClases)[p]=true;
@@ -810,7 +814,7 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
 
 			//Recalcular classes
 			if (minimaPoints)
-			  getPointClasses(25,15);
+			  getPointClasses();
                     }
                 } else {
                  // Line selection
@@ -864,7 +868,7 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
                             mw->updateID(selected_line->id);
 			    //Recalcular classes
 			    if (minimaPoints)
-			      getPointClasses(25,15);
+			      getPointClasses();
 		      }
                     }
                 }
@@ -943,7 +947,7 @@ void GLViewport::mouseMoveEvent(QMouseEvent *event){
 		  }
 		}
 	      }
-	      getPointClasses(25,15);
+	      getPointClasses();
 	      updatePosition(selected_point->x, selected_point->y);
 	      modified = true;
 	    } 
@@ -1075,6 +1079,14 @@ QString GLViewport::generateNewID(QString type){
         }while(used_region_IDs->contains(newID) || used_line_IDs->contains(newID));
     }
     return newID;
+}
+void GLViewport::setDist_maxima_DOWN_toBaseline(int down){
+  dist_maxima_DOWN_toBaseline = down;
+  getPointClasses();
+}
+void GLViewport::setDist_maxima_UP_toBaseline(int up){
+  dist_maxima_UP_toBaseline = up;
+  getPointClasses();
 }
 
 /*****************************************************/

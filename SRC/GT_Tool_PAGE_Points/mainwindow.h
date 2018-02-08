@@ -105,6 +105,8 @@ protected:
     GLViewport *viewport;
     bool autosave;
     bool overwrite;
+    int dist_maxima_UP_toBaseline;
+    int dist_maxima_DOWN_toBaseline;
     int mode;
 
     /* Private methods */

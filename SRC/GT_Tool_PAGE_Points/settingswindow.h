@@ -37,7 +37,8 @@ class SettingsWindow : public QDialog
     QWidget *main_window;
     bool autosave;
     bool overwrite;
-
+    int dist_maxima_UP_toBaseline;
+    int dist_maxima_DOWN_toBaseline;
     /* GUI atributes */
     QVBoxLayout *settings_layout;
     QCheckBox *overwrite_checkbox;
@@ -61,7 +62,8 @@ public slots:
     void acceptSlot();
     void updateAutosave(bool s);
     void updateOverwrite(bool s);
-
+    void updateDist_maxima_UP_toBaseline(int s);
+    void updateDist_maxima_DOWN_toBaseline(int s);
 };
 
 #endif // SETTINGSWINDOW_H

@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent)
     filelist = 0;
     autosave = false;
     overwrite = true;
+    dist_maxima_UP_toBaseline=15;
+    dist_maxima_DOWN_toBaseline=10;
     mode = LINE_MODE;
     setWindowTitle("GT_Tool_PAGE Baseline mode");
     data=0;
@@ -58,6 +60,8 @@ MainWindow::MainWindow(char* filename, bool single, QWidget *parent)
     filelist = 0;
     autosave = false;
     overwrite = true;
+    dist_maxima_UP_toBaseline=15;
+    dist_maxima_DOWN_toBaseline=10;
     mode = LINE_MODE;
     setWindowTitle("GT_Tool_PAGE Baseline mode");
     data=0;
@@ -311,6 +315,8 @@ void MainWindow::showSettings(){
     QMap<QString, QVariant> prevset;
     prevset["autosave"] = autosave;
     prevset["overwrite"] = overwrite;
+    prevset["up_edge"] = dist_maxima_UP_toBaseline;
+    prevset["down_edge"] = dist_maxima_DOWN_toBaseline;
     settings_window = new SettingsWindow(this, &prevset);
     connect(settings_window,SIGNAL(updateSettings(QMap<QString,QVariant>&)),this,SLOT(updateSettings(QMap<QString,QVariant>&)));
 }
@@ -342,13 +348,13 @@ void MainWindow::loadPointsFile(char * filename){
   delete inputFile;
   viewport->loadPoints(fileName);
   if(data)
-    viewport->getPointClasses(25,15);
+    viewport->getPointClasses();
     
 }
 void MainWindow::loadFile(char* filename, bool single){
     QString fileName;
     if(filename==0)
-        fileName=QFileDialog::getOpenFileName(this,"Open list file","","All files(*);;Text files (*.txt);;List files (*.ls *.list)");
+        fileName=QFileDialog::getOpenFileName(this,"Open list file","","PAGE files(*.xml);;all files (*);;List files (*.ls *.list)");
     else
         fileName=QString::fromStdString(filename);
 
@@ -525,6 +531,11 @@ void MainWindow::saveDocument(){
 void MainWindow::updateSettings(QMap<QString, QVariant> &settings){
     autosave = settings["autosave"].toBool();
     overwrite = settings["overwrite"].toBool();
+    dist_maxima_UP_toBaseline = settings["up_edge"].toInt();
+    dist_maxima_DOWN_toBaseline = settings["down_edge"].toInt();
+    viewport->setDist_maxima_UP_toBaseline (dist_maxima_UP_toBaseline);
+    viewport->setDist_maxima_DOWN_toBaseline (dist_maxima_DOWN_toBaseline);
+    
 }
 
 void MainWindow::updateID(QString id){

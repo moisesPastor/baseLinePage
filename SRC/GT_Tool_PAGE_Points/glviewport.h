@@ -76,9 +76,11 @@ protected:
 
     Handle *closest_handle;
     Handle *selected_handle;
-
+    int dist_maxima_UP_toBaseline;
+    int dist_maxima_DOWN_toBaseline;
     int mode;
-
+    
+  
     QString generateNewID(QString type); /* v.g. "r" for region or "l" for line */
     void updateSelectionWindow(){ selection_window=zoom*5;
                                   if(selection_window<5)
@@ -107,11 +109,12 @@ public:
     bool loadImage(QString imageFileName);
     void loadPoints(QString imageFileName);
     void releasePoints();
-    void getPointClasses(int dist_maxima_UP  = 25, int dist_maxima_DOWN=15);  
+    void getPointClasses();  
     void setRegions(QVector<TextRegion> *nregions);
 
     void keyPressEvent(QKeyEvent *event);
-
+    void setDist_maxima_UP_toBaseline(int up);
+    void setDist_maxima_DOWN_toBaseline(int down);
 signals:
 
     void updatePosition(int x, int y);
