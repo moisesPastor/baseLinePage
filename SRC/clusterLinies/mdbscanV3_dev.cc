@@ -28,7 +28,6 @@
 #include <vector>
 #include <algorithm>
 
-//#include <boost/algorithm/string.hpp>
 #include "pugixml.hpp"
 #include "slopeClass.h"
 
@@ -282,8 +281,6 @@ void plotRegions(Mat & img,vector< vector<Point> > & regions ){
   int thickness=2;
   int lineType = 8;
   bool isClosed=false;
-  int point_shape=2;
-
   
   for (uint r=0; r <regions.size(); r++) {
     for (uint p = 0; p < regions[r].size(); p++) {
@@ -300,15 +297,11 @@ void plotEllipseNeighbourhood(DbScan & dbscan, Mat img, std::map<int, int> & dis
   for(uint i=0;i<dbscan.data.size();i++) {
     
     int label=dbscan.labels[i];
-    
-    int point_shape;
     Scalar color;
 
     if(label>NOISE){ // Not noise
       color=colors[label%numColors];
-      point_shape=2;
     } else { //noise
-      point_shape=4; //diamond 
       color=Scalar(128,128,128); //grey
     }
 
@@ -321,13 +314,11 @@ void plotPolyLines(Mat grouped, vector<vector< vector<Point> > > lines, bool pri
 
   int thickness=2;
   int lineType = 8;
-  bool isClosed=false;
 
   for (uint r = 0; r < lines.size(); r++)
     for (uint lin = 0; lin < lines[r].size(); lin++) {
       if (lines[r][lin].size() == 0) continue;
       std::sort(lines[r][lin].begin(), lines[r][lin].end(), sort_points_func);
-      int dist=0;
    
       if (!printPolyline){
 	Vec4f paramLine;
@@ -369,7 +360,6 @@ void plotPolyLines(Mat grouped, DbScan & dbscan){
 
   int thickness=2;
   int lineType = 8;
-  bool isClosed=false;
 
   for (int i = 0; i <= dbscan.numClasses; i++) {
     if (pointsClasses[i].size() == 0) continue;
@@ -388,16 +378,6 @@ void plotPolyLines(Mat grouped, DbScan & dbscan){
     }
   }
   delete [] pointsClasses;
-}
-
-vector<std::string> split(const std::string& s, char delimiter) {
-   std::vector<std::string> tokens;
-   std::string token;
-   std::istringstream tokenStream(s);
-   while (std::getline(tokenStream, token, delimiter))  {
-      tokens.push_back(token);
-   }
-   return tokens;
 }
 
 //----------------------------------------------------------
@@ -973,7 +953,7 @@ int main(int argc,char** argv ) {
   pugi::xml_document page;
   pugi::xml_parse_result result = page.load_file(xmlFileName.c_str());
   if (!result){
-    cerr << "ERROR: file: " << xmlFileName << " could not be opened" << endl;
+    cerr << "ERROR: file: " << xmlFileName << " cannot not been opened" << endl;
     exit(-1);
   }
   vector <vector <cv::Point> >  regions= getRegions(page);

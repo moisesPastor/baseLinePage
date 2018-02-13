@@ -24,7 +24,6 @@
 #include <vector>
 #include <set>
 
-#include <boost/algorithm/string.hpp>
 #include <opencv2/opencv.hpp>
 #include <algorithm>
 
@@ -57,33 +56,38 @@ vector <vector <cv::Point > > getBaselines(pugi::xml_document & page){
   vector< vector <cv::Point > > baselines;
   vector<cv::Point> tmp_baseline;
 
-  int n_reg=0;
   for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
-    
-    int n_lin=0;
     
     for (pugi::xml_node line_region = text_region.child("TextLine"); line_region; line_region = line_region.next_sibling("TextLine")){   
       tmp_baseline.clear();
       std::vector<std::string> string_values;
       string point_string = line_region.child("Baseline").attribute("points").value();
+      
       if(point_string != ""){
-	boost::split(string_values,point_string,boost::is_any_of(" "),boost::token_compress_on);
-        
-	for(unsigned int p = 0; p < string_values.size();p++){
-	  std::vector<std::string> string_point;
-	  boost::split(string_point,string_values[p],boost::is_any_of(","),boost::token_compress_on);
-	  int x;
-	  istringstream(string_point[0]) >> x;
-	  int y; 
-	  istringstream(string_point[1]) >> y;
+
+	istringstream point_stream(point_string);
+	std::string string_point;
+	while (point_stream >> string_point){
+	  int cont_comas=0;
+	  for (int i = 0; i < string_point.size(); i++) {
+	    if (string_point[i] == ','){
+	      string_point[i] = ' ';
+	      cont_comas++;
+	    }
+	  }
+
+	  if (cont_comas != 1){
+	    cerr << "drawBaselines ERROR: regions cords bad format"<< endl;
+	    exit(-1);
+	  }	
+
+	  int x,y;
+	  istringstream(string_point) >> x >> y;;
 	  tmp_baseline.push_back(cv::Point(x,y));
 	}
-	n_lin++;
-	baselines.push_back(tmp_baseline);
-      }
-      
+	baselines.push_back(tmp_baseline);	  
+      }      
     }
-    n_reg++;
   }
   return baselines;
 }
