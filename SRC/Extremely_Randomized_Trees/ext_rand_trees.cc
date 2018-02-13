@@ -1,28 +1,10 @@
-/*
- *   Copyright 2017, Moisés Pastor i Gadea and Jorge Martínez
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
- *  Created on: 20/10/2017
- *      Author: Moisés Pastor i Gadea and Jorge Martínez
- */
-
-
+//Compilar: g++ -o ext_rand_trees ext_rand_trees.cpp `pkg-config opencv --cflags --libs` 
+//g++ -o ext_rand_trees ext_rand_trees.cpp -I/usr/include/opencv -I/usr/include -L/usr/lib  -lopencv_highgui -lopencv_imgproc -lopencv_core -lopencv_ml -O3
 #include <iostream>
-#include <string>
+#include <unistd.h>
 #include <fstream>
 #include <vector>
-#include <unistd.h>
+
 #include <opencv/ml.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -32,55 +14,80 @@
 #define MODE_CLASSIF 1
 
 using namespace cv;
-
 using namespace std;
 
+
 void usage(char * nomProg){
-    std::cerr << "Usage: " << nomProg << " [options]" << std::endl;
-    std::cerr << "    options:" << std::endl;
-    std::cerr << "       -i input filename (REQUIRED, data for training or classifying)" << std::endl;
-    std::cerr << "       -l imput file list (REQUIRED, data for training or classifying)" << std::endl;
-    std::cerr << "       -m mode (\"train\" or \"classify\", default \"classify\")" << std::endl;
-    std::cerr << "       -t tree filename (REQUIRED, in training mode, the file to save the tree, in test/classification, the tree to use)" << std::endl;
-    std::cerr << "       -n number of samples required to split a node (used in training, default 2)" << std::endl;
-    std::cerr << "       -k number of random splits at each node (used in training, default sqrt(number_of_samples))" << std::endl;
-    std::cerr << "       -s number of trees (used in training, default 100)" << std::endl;
-}
-void displayTrainingParameters(string &inFile, string &treeFile, int max_depth, int nmin, int K, int M){
-    std::cout << "Training ERT with data from " << inFile << ", with parameters:" << std::endl;
-    std::cout << "   nmin = " << nmin << std::endl;
-    std::cout << "   K = " << K << std::endl;
-    std::cout << "   M = " << M << std::endl;
-    std::cout << "Output trained ERT to " << treeFile << std::endl;
+    cerr << "Usage: " << nomProg << " [options]" << endl;
+    cerr << "    options:" << endl;
+    cerr << "       -i input filename (REQUIRED, data for training or classifying)" << endl;
+    cerr << "       -l imput file list (REQUIRED, data for training or classifying)" << endl;
+    cerr << "       -m mode (\"train\" or \"classify\", default \"classify\")" << endl;
+    cerr << "       -t tree filename (REQUIRED, in training mode, the file to save the tree, in classification, the tree to use)" << endl;
+    cerr << "       -n number of samples required to split a node (used in training, default 2)" << endl;
+    cerr << "       -k number of random splits at each node (used in training, default sqrt(number_of_samples))" << endl;
+    cerr << "       -s number of trees (used in training, default 100)" << endl;
 }
 
-void trainERT(string &inFile, string &treeFile, int nmin, int K, int M){
-    CvMLData dataManager;
-    // Read the training data
-    int ret_val = dataManager.read_csv(inFile.c_str());
-    if(ret_val == -1){
-        std::cerr << "Error reading the input data " << std::endl;
-        return;
-    }
-    dataManager.change_var_type(0, CV_VAR_CATEGORICAL); // The first column has the labels
-    dataManager.set_response_idx(0); 
+void displayTrainingParameters(string &inFile, string &treeFile, int max_depth, int nMin, int K, int M){
+    cout << "Training ERT with data from " << inFile << ", with parameters:" << endl;
+    cout << "   nMin = " << nMin << endl;
+    cout << "   K = " << K << endl;
+    cout << "   M = " << M << endl;
+    cout << "Output trained ERT to " << treeFile << endl;
+}
 
+void trainERT(string &inFile, string &treeFile, int nMin, int K, int M){
+  // Read the training data
+  CvMLData dataManager;    
+  int ret_val = dataManager.read_csv(inFile.c_str());
+  if(ret_val == -1){
+    cerr << "Error reading the input data " << endl;
+    return;
+  }
+  dataManager.change_var_type(0, CV_VAR_CATEGORICAL); // The first column has the labels
+  dataManager.set_response_idx(0);
+
+     /* max_depth shouldn't be used, nMin limits the tree depth
+       
+	calc_var_importance should be set to false, but setting it to
+       true could be interesting in the future to see if there are
+       areas that are systematically non informative. 
+
+       If we set term_criteria to CV_TERMCRIT_ITER, M is used to
+       determine when to stop (max numer of trees), if we set it to
+       CV_TERMCRIT_EPS, forest_accuracy is used. We can use both (one
+       | theother) too.
+       */
+    
     int max_depth = 1000;
-    int max_categories = 3;
-    bool calc_var_importance = false;
-    float forest_accuracy = 0; // Not used
-    int term_criteria = CV_TERMCRIT_ITER;
-    CvRTParams* parameters = new CvRTParams(max_depth, nmin, 0.0, false, max_categories, 0, calc_var_importance, 
-                                            K, M, forest_accuracy, term_criteria); // For setting the ERT parameters
+    int max_categories = 2;
+    bool calc_var_importance = true;    
+    float forest_accuracy = 1e-6; // Not used
+    int term_criteria = CV_TERMCRIT_ITER+CV_TERMCRIT_EPS;
+    
+    CvRTParams* parameters = new CvRTParams(max_depth, nMin, 0.0, false, max_categories,
+					    0, calc_var_importance, 
+                                            K, M, forest_accuracy, term_criteria);
+    
     CvERTrees ert;
-    displayTrainingParameters(inFile, treeFile, max_depth, nmin, K, M);
+    displayTrainingParameters(inFile, treeFile, max_depth, nMin, K, M);
+
     ert.train(&dataManager,*parameters);
-    ert.save(treeFile.c_str()); // Save the trees
+    ert.save(treeFile.c_str());
+    
+    if (calc_var_importance){
+      Mat vars = ert.getVarImportance();
+      for (int i = 0; i < vars.rows; i++) {
+	cout << vars.row(i) << endl;
+      }
+    }
+    
     delete parameters;
 }
 
 
-void classifyUsingERT( std::vector<string> & files, string &treeFile, float minProb){
+void classifyERT( vector<string> & files, string &treeFile, float minProb){
   CvERTrees ert;
   ert.load(treeFile.c_str()); 
   
@@ -89,32 +96,33 @@ void classifyUsingERT( std::vector<string> & files, string &treeFile, float minP
     int ret_val = dataManager.read_csv(files[i].c_str()); // Read the data
 	    
     if(ret_val == -1){
-      std::cerr << "Error reading the input data for file " << files[i] << std::endl;
+      cerr << "Error reading the input data for file " << files[i] << endl;
     }else{
       Mat* data = new Mat(dataManager.get_values());
-      int ndata = data->rows;
 	      
       string outname = files[i];
       outname.append(".clas");
-      std::ofstream out;
+      ofstream out;
       out.open(outname.c_str());
 
-      for(int j=0;j<ndata;j++){  //CvForestTree* get_tree(int i) const;
+      for(int j=0;j<data->rows;j++){  //CvForestTree* get_tree(int i) const;
+	//cout << data->row(j)<< endl;
 	float clas = ert.predict(data->row(j));
-
 	
-	int cont=0;
+	float cont=0;
 	int ntrees = ert.get_tree_count();
 	for (int t=0; t < ntrees; t++){
 	  CvForestTree* tree = ert.get_tree(t);
-	  CvDTreeNode* node= tree->predict( data->row(j));
+	  CvDTreeNode* node= tree->predict(data->row(j));
 	  if (node->value == clas)
 	    cont ++;
+    
 	}
-	if (cont/(float)ntrees >=minProb)
-	  out << clas << std::endl;
-	else 
-	  out << "10" << std::endl;
+	// if (clas == 10 && cont/(float)ntrees <=minProb)          
+	//   clas = 2;
+
+	out << clas << endl; //"  "<<cont/ntrees<< endl;
+	
       }
       out.close();
       delete data;
@@ -123,8 +131,7 @@ void classifyUsingERT( std::vector<string> & files, string &treeFile, float minP
 }
 
 
-int main(int argc, char ** argv)
-{
+int main(int argc, char ** argv){
     int option;
     string inFile="";
     string listInFile="";
@@ -132,10 +139,10 @@ int main(int argc, char ** argv)
     int mode=2; // Default
     
     // ERT parameters for training
-    int nmin = 2;
+    int nMin = 2;
     int K = 0; // Default value of sqrt N
     int M = 100;
-    float minProb=0;
+    float minProb=0.5;
 
     string m; // Auxiliar
     if(argc<3){
@@ -157,7 +164,7 @@ int main(int argc, char ** argv)
                 else if(m=="classify")
                     mode = MODE_CLASSIF;
                 else{
-                    std::cerr << "Wrong mode. Possible choices are \"train\" or \"classify\"" << std::endl;
+                    cerr << "Wrong mode. Possible choices are \"train\" or \"classify\"" << endl;
                     return -1;
                 }            
                 break;
@@ -165,7 +172,7 @@ int main(int argc, char ** argv)
                 treeFile=optarg;
                 break;
             case 'n': // Number of samples required to split a node
-                nmin = atoi(optarg);
+                nMin = atoi(optarg);
                 break;
             case 'k': // Number of random splits at each node
                 K = atoi(optarg);
@@ -174,56 +181,49 @@ int main(int argc, char ** argv)
                 M = atoi(optarg);
                 break;
 	    case 'p':
-	        minProb=atof(optarg);
-	        break;
+                minProb=atof(optarg);
+                break;
+
             case 'h':
             default:
                 usage(argv[0]);
                 return 1;
         }
-
     if(inFile=="" && listInFile==""){
-        std::cerr << "Error: no input data filename" << std::endl;
+        cerr << "Error: no input data filename" << endl;
         return -1;
     }
-
     if(treeFile==""){
-        std::cerr << "Error: no tree filename" << std::endl;
+        cerr << "Error: no tree filename" << endl;
         return -1;
     }
-    
     switch(mode){
         case MODE_TRAIN:
-            trainERT(inFile, treeFile, nmin, K, M);
+            trainERT(inFile, treeFile, nMin, K, M);
             break;
-        case MODE_CLASSIF:
-
-	  if (! std::ifstream(treeFile.c_str())){
-	    cerr << "ERROR: TreeFile "<< treeFile << " cannot be oppened" << std::endl;
-	    return -1;
-	  }
-
-	  std::vector<string> files;
+        case MODE_CLASSIF:{
+	  vector<string> files;
 	  
 	  if(inFile.size()!=0)
 	    files.push_back(inFile);
 	  else{
-	    std::ifstream in;
+	    ifstream in;
 	    in.open(listInFile.c_str());
-	    if (!in){
-	      cerr << "ERROR: File " << listInFile.c_str() << " cannot be oppened" << endl;
-	      exit(-1);
-	    }
 	    while(in.good()){
 	      string tmp;
 	      in >> tmp;
 	      if(tmp!="")
                 files.push_back(tmp);
 	    }
-	    in.close();
 	  }
-	  classifyUsingERT(files, treeFile, minProb);
+	  classifyERT(files, treeFile,minProb);
 	  break;
+	}
+       default:
+
+	 cerr << argv[0]<< " --> Error: mode must be specified"<< endl;
     } 
     return 0;
+
+      
 }
