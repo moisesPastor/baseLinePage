@@ -14,8 +14,8 @@ baseLinePage:
 	cp clusterLinies/mdbscan imageLocalExtrema/imageLocalExtrema Extremely_Randomized_Trees/ext_rand_trees labelPointsFromBaselines/labelPointsFromBaselines pointsToClassifierData drawBaselines  TranskribusBaseLineEvaluationScheme-0.1.3-jar-with-dependencies.jar ../BIN
 
 GTTool:
-	make  -C GT_Tool_PAGE/
-	cp GT_Tool_PAGE/GT_Tool_PAGE ../BIN
+	make  -C GT_Tool_PAGE_Points/
+	cp GT_Tool_PAGE_Points/GT_Tool_PAGE_Points ../BIN
 
 clean:
 	rm pointsToClassifierData
@@ -24,4 +24,4 @@ clean:
 	make -C imageLocalExtrema clean;
 	make -C Extremely_Randomized_Trees clean
 	make -C labelPointsFromBaselines clean
-	make -C GT_Tool_PAGE clean
+	make -C GT_Tool_PAGE_Points clean
