@@ -1,44 +1,251 @@
-/*
- *   Copyright 2017, Moisés Pastor i Gadea
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
-
- *  Created on: 20/10/2017
- *      Author: Moisés Pastor i Gadea
- */
+// compile: g++ -o adjustParam adjustParam.cc   -lopencv_imgproc -lopencv_core -lopencv_highgui
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <map>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-
 #include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
+
 
 using namespace cv;
 using namespace std;
+
+
+class LocalMinima{
+
+public:
+  Mat img;
+  int window;
+  int kernel_size;
+  int pTallMin;
+  static const int max_thresh = 400;
+  LocalMinima(String inFilename,int window,int pTallMin, int kernel_size);
+  void preprocessing(Mat & img);
+  void getMinimaPoints();
+  void getMinimaPoints(Mat & aux);
+  void pintaPunts(Mat &);
+  Mat pintaPuntsEnContorns(Mat & img_gray);
+  void writeMinimaToFile(String inFileName);
+private: 
+  vector<Point> selected_min;
+  vector<Point> * purge(vector<Point> &points);  
+  bool exterior(Point p, bool isUp);
+  void findMinInContours (vector<Point> & points);
+};
+
+//-----------------------------------------------------------
+//-----------------------------------------------------------
+void callback(int v, void *ptr){
+  LocalMinima *that = (LocalMinima*)ptr;
+  Mat img_gray= that->img.clone();
+
+  that->preprocessing(img_gray);
+  that->getMinimaPoints(img_gray);
+ 
+  that->pintaPunts(img_gray);
+  imshow( "Minima control",img_gray);
+ 
+  img_gray.release();  
+}
+
+//-----------------------------------------------------------
+void usage(char * nomProg){
+  cerr << "Usage: "<<nomProg << " options" << endl;
+  cerr << "      options:" << endl;
+  cerr << "             -i inputfile" << endl;
+  cerr << "            [-t minum number of points per contourn (by default 25)]" << endl;
+  cerr << "            [-w width of half the window (by default 10)]" << endl;
+  cerr << "            [-v verbosity(by default none)]" << endl;
+}
+//-----------------------------------------------------------
+int main( int argc, char** argv ) {
+  string inFileName,outFileName;
+
+  int option, window=5, kernel_size=4 ;
+  unsigned int pTallMin=25; 
+  bool verbosity=false;
+  bool graphicalMode=false;
+
+
+  while ((option=getopt(argc,argv,"h:i:o:t:w:k:gv"))!=-1)
+    switch (option)  {
+    case 'i':
+      inFileName = optarg;
+      break;
+    case 'o':
+      outFileName = optarg;
+      break;
+    case 't':
+      pTallMin=atoi(optarg);
+      break; 
+    case 'w':
+      window=atoi(optarg);
+      break;
+    case 'k':
+      kernel_size=atoi(optarg);
+      if (kernel_size < 2) kernel_size=2;
+      break;
+    case 'g':
+      graphicalMode=true;
+      break;
+    case 'v':
+      verbosity=true;
+      break;
+    case 'h':
+    default:
+      usage(argv[0]);
+      exit(1);
+    }
+  
+  LocalMinima loc(inFileName, window, pTallMin, kernel_size);
+  
+  if (graphicalMode){
+           
+    const char* main_window = "Minima control";
+    namedWindow(main_window,CV_GUI_EXPANDED);    
+    resizeWindow(main_window, 1600,1200);    
+    
+    createTrackbar("win context:", main_window, &(loc.window), 100, callback, &loc);
+    createTrackbar( "Boud size context:", main_window, &(loc.pTallMin), 300, callback, &loc);
+    createTrackbar( "Erosion kernel size:", main_window, &(loc.kernel_size), 100, callback,  &loc);
+    setTrackbarPos( "Erosion kernel size:",main_window ,kernel_size );
+ 
+  
+    imshow(main_window, loc.img);
+  
+    const char ESC = (char)27;
+    char k;
+    do
+      k=cvWaitKey(0);
+    while (k != ESC);
+
+    //ara sobre la imatge original
+    loc.preprocessing(loc.img);    
+    loc.getMinimaPoints();
+    
+    if (outFileName.size() > 0){
+      loc.writeMinimaToFile(outFileName);
+    }
+
+    cout << "context_win = " << loc.window << " prunning size = " << loc.pTallMin << " kernel size = " << loc.kernel_size << endl;
+  } else {
+    // cout << "context_win = " << loc.window << " prunning size = " << loc.pTallMin << " kernel size = " << loc.kernel_size << endl;
+
+     loc.preprocessing(loc.img);    
+     loc.getMinimaPoints();
+    
+     if (outFileName.size() == 0){
+       // output files
+       string minFileName = inFileName.substr(0,inFileName.length()-3)+"min";
+       loc.writeMinimaToFile(minFileName);
+     }else
+       loc.writeMinimaToFile(outFileName);
+  }
+
+  return(0);
+}
+
+
+//-------------------------------------------------------------
+LocalMinima::LocalMinima(String inFileName,int window=10,int pTallMin=25, int kernel_size=5 ){
+  this->window = window;
+  this->pTallMin=pTallMin;
+  this->kernel_size = kernel_size;
+  
+  img=imread( inFileName.c_str(), CV_LOAD_IMAGE_GRAYSCALE );
+  if (!img.data) {
+    cerr << "ERROR reading the image file "<< inFileName<< endl;
+    exit(-1);
+  }
+
+  
+  threshold(img, img, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+  
+  //dilatacio vertical
+  Mat kernel_v = getStructuringElement( MORPH_RECT,  Size(3,1),  Point(1, 0 ) );
+  erode(img, img, kernel_v);
+ 
+ }
+
+//-------------------------------------------------------------
+void LocalMinima::preprocessing(Mat & img_gray){
+  //threshold(img_gray, img_gray, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+  if (kernel_size == 0)
+    kernel_size=1;
+  
+  Mat kernel = getStructuringElement( MORPH_RECT,  Size(abs(kernel_size),1),  Point(abs(kernel_size/2),0 ) );
+   
+   dilate(img_gray, img_gray, kernel); //como la imagen está invertida, esto es una erosión
+   //erode(img_gray,img_gray,kernel);
+   
+   GaussianBlur(img_gray, img_gray, Size( 5, 5 ),3,3);
+   
+   threshold(img_gray, img_gray, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+
+}
+//-------------------------------------------------------------
+void LocalMinima::getMinimaPoints(){
+  Mat img_gray = img.clone();
+  getMinimaPoints(img_gray);
+}
+//-------------------------------------------------------------
+void LocalMinima::getMinimaPoints(Mat & img_aux){
+  selected_min.clear();
+
+  // obtain contours
+  vector<vector<Point> > contours(0);
+  vector<Vec4i> hierarchy(0);
+
+  
+  findContours(img_aux, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+
+  
+  for (unsigned int c=0; c < contours.size(); c++)
+    if (contours[c].size() > pTallMin && hierarchy[c][3] != -1  )  //hierarchy[c][3] != -1 -> no parents
+      findMinInContours (contours[c]);      
+
+
+}
+//-----------------------------------------------------------
+void LocalMinima::findMinInContours (vector<Point> & points){
+
+
+  vector<Point> * purged = purge(points);
+
+  for ( int p=0; p<purged->size(); p++ ) {
+    bool  min=true, context=false;
+    
+    for (int j = 0; j < purged->size(); j++) 
+      if (abs((*purged)[j].x - (*purged)[p].x) <= window/2 && abs((*purged)[j].y - (*purged)[p].y) <= window){      
+  	  context=true;	 
+  	  if ((*purged)[j].y > (*purged)[p].y){
+  	    min=false;
+	    break;
+	  }
+  	}
+      
+    
+    if (context && min) // && contPuntsDinsWin>=MinNumPuntsInWin)
+      if(exterior((*purged)[p], false))
+  	 selected_min.push_back((*purged)[p]);	
+      
+  }
+
+  delete(purged); 
+  
+}
+
+
+//-----------------------------------------------------------
+
 
 //per al sort
 bool compare_pointsX(Point a, Point b){
   return a.x < b.x;
 }
-
 //-----------------------------------------------------------
-vector<Point> * purge(vector<Point> &points, Mat & image){
+vector<Point> * LocalMinima::purge(vector<Point> &points){
 
   vector<Point>::iterator it = points.begin();
   //llevem duplicats
@@ -112,14 +319,14 @@ vector<Point> * purge(vector<Point> &points, Mat & image){
 }
 
 //-----------------------------------------------------------
-bool exterior(Point p, const Mat & image, bool isUp){
+bool LocalMinima::exterior(Point p, bool isUp){
   float cont_down=0,cont_up=0;
   int y=p.y;
-  for (y=p.y; y<image.rows && y<p.y+5; y++)
-    cont_down+= image.at<uchar>(y,p.x);
+  for (y=p.y; y<img.rows && y<p.y+5; y++)
+    cont_down+= img.at<uchar>(y,p.x);
 
   for (y=p.y; y>0 && y>p.y-5; y--)
-    cont_up+= image.at<uchar>(y,p.x);
+    cont_up+= img.at<uchar>(y,p.x);
 
   
   if (isUp) return cont_up > cont_down;
@@ -128,131 +335,51 @@ bool exterior(Point p, const Mat & image, bool isUp){
 
 }
 
-//-----------------------------------------------------------
-void findMin (vector<Point> points, int window, vector<Point> & selected_min, Mat & image, Mat & img_orig, int MinNumPuntsInWin=5){
- 
+//-------------------------------------------------------------
+void LocalMinima::pintaPunts(Mat & img_gray){
+    //pinta punts
+  img_gray = img_gray^0xFF;
   
-  vector<Point> * purged = purge(points,image);
-
-
- vector<Point>  selected_min2;
-
-  for ( int i=0; i<purged->size(); i++ ) {
-    bool  min=true, context=false;
-    int contPuntsDinsWin=0;
-    
-    for (int j = 0; j < points.size(); j++) {             
-      if (abs(points[j].x - (*purged)[i].x) <= window/2 && abs(points[j].y - (*purged)[i].y) <= window){
-  	  context=true;
-	  contPuntsDinsWin++;
-  	  if (points[j].y > (*purged)[i].y){
-  	    min=false;
-	    break;
-	  }
-
-  	}
-      }
-    
-    if (context && min) // && contPuntsDinsWin>=MinNumPuntsInWin)
-      if(exterior((*purged)[i],img_orig, false)){
-  	 selected_min.push_back((*purged)[i]);	
-      }
-  }
-
-  delete(purged); 
-  
-}
-
-//-----------------------------------------------------------
-void usage(char * nomProg){
-  cerr << "Usage: "<<nomProg << " options" << endl;
-  cerr << "      options:" << endl;
-  cerr << "             -i inputfile" << endl;
-  cerr << "            [-t minum number of points per contourn (by default 25)]" << endl;
-  cerr << "            [-w width of half the window (by default 10)]" << endl;
-  cerr << "            [-v verbosity(by default none)]" << endl;
-}
-
-//-----------------------------------------------------------
-int main(int argc, char* argv[]) {
-
-  string inFileName;
-  ofstream minFile;
-
-  int option, window=5;
-  unsigned int pTallMin=25; 
-  bool verbosity=false;
-
-
-  while ((option=getopt(argc,argv,"h:i:t:w:v"))!=-1)
-    switch (option)  {
-    case 'i':
-      inFileName = optarg;
-      break;
-    case 't':
-      pTallMin=atoi(optarg);
-      break; 
-    case 'w':
-      window=atoi(optarg);
-      break;
-    case 'v':
-      verbosity=true;
-      break;
-    case 'h':
-    default:
-      usage(argv[0]);
-      exit(1);
+    int point_shape=5;
+    for (int i = 0; i < selected_min.size(); i++) {     
+      circle( img_gray, selected_min[i], 2, Scalar(25), point_shape );
     }
 
-  if (inFileName.size() ==0){
-    usage(argv[0]);
-    exit(1);
-  }
-   
-  Mat img=imread( inFileName.c_str(), CV_LOAD_IMAGE_GRAYSCALE );
-  if (!img.data) {
-    cerr << "ERROR reading the image file "<< inFileName<< endl;
-    return -1;
-  }
+}
 
-  threshold(img, img, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+//-------------------------------------------------------------
+Mat LocalMinima::pintaPuntsEnContorns(Mat & img_gray){
+  cv::Mat image(img_gray.size(),CV_8U,cv::Scalar(255));
 
-  Mat kernel = getStructuringElement(  MORPH_ELLIPSE,  Size(1,5),  Point( 0, 0 ) );
-  //erode(img,img,kernel);
-  dilate(img,img,kernel);
-  
-  GaussianBlur( img, img, Size( 5, 5 ),3,3);
-  
-  Mat img_edge(img.rows, img.cols, CV_8UC1, 1);
+ // obtain contours
+  vector<vector<Point> > contours(0);
+  vector<Vec4i> hierarchy(0);
 
-  threshold(img, img_edge, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
- 
+  findContours(img_gray, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+    for (unsigned int c=0; c < contours.size(); c++){
+      if ( hierarchy[c][3] != -1 ||hierarchy[c][3]==0 ) 
+        if (contours[c].size() > pTallMin)
+          for(unsigned int p=0; p<contours[c].size(); p++ ) {
+            if (contours[c][p].y > 1 && contours[c][p].y < image.rows - 2 && contours[c][p].x > 1 && contours[c][p].x < image.cols - 2) {
+              image.at<uchar>(contours[c][p].y, contours[c][p].x)=0;              
+            } 
+          }
+    }
+    return image;
+    
+}
 
-  // obtain contours
-  vector<vector<Point> > contours;
-  vector<Vec4i> hierarchy;
-  findContours(img_edge, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
- 
-  //finding local min points
-   vector<Point>  selected_min;
 
-  cout << contours.size() << endl;
-   //  cerr << "contour: Total Contours Detected: "<<  contours.size() << endl;
-   for (unsigned int c=0; c < contours.size(); c++){
-     if (contours[c].size() > pTallMin && hierarchy[c][3] != -1  ) { //hierarchy[c][3] != -1 -> no parents
-       findMin ( contours[c], window,  selected_min, img_edge, img);
-     }
-   }
+//-------------------------------------------------------------
+void LocalMinima::writeMinimaToFile(String outFileName){
+  ofstream minFile;
 
-  // output files
-  string minFileName;
-  minFileName=inFileName.substr(0,inFileName.length()-3)+"min";
-
-  minFile.open(minFileName.c_str());
+  std::sort(selected_min.begin(), selected_min.end(), compare_pointsX);
+  minFile.open(outFileName.c_str());
 
   if (!minFile){
-    cerr << "Error creating "<< minFileName << endl;
-    return -1;
+    cerr << "Error creating "<< outFileName << endl;
+    exit (-1); 
   }
 
   // writing head min points file
@@ -268,32 +395,4 @@ int main(int argc, char* argv[]) {
 
   // clossing files
   minFile.close();
-
-  if (verbosity){
-    
-    cv::Mat image(img.size(),CV_8U,cv::Scalar(255));
-
-    for (unsigned int c=0; c < contours.size(); c++){
-      if ( hierarchy[c][3] != -1 ||hierarchy[c][3]==0 ) 
-	if (contours[c].size() > pTallMin)
-	  for(unsigned int p=0; p<contours[c].size(); p++ ) {
-	    if (contours[c][p].y > 1 && contours[c][p].y < image.rows - 2 && contours[c][p].x > 1 && contours[c][p].x < image.cols - 2) {
-	      image.at<uchar>(contours[c][p].y, contours[c][p].x)=0;
-	      
-	    } 
-	  }
-    }
-    string contourFileName=inFileName.substr(0,inFileName.length()-3)+"contornos.jpg";
-      
-    cv::imwrite(contourFileName, image);
-
-    cv::Mat tmp = img_edge ^ 0xFF;
-    string filtradaFileName=inFileName.substr(0,inFileName.length()-3)+"filtrada.jpg";
-    imwrite(filtradaFileName,tmp);
-
-    string imgPrepFileName=inFileName.substr(0,inFileName.length()-3)+"prep.jpg";
-    imwrite(imgPrepFileName,img);
-  }
-  
-  return 0;
 }
