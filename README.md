@@ -7,9 +7,9 @@ Toolkit to locate the baselines in handwritten text pages
 * BaseLinPages uses [OpenV](https://opencv.org) and [Bash shell](https://es.wikipedia.org/wiki/Bash)
 
 * Some features:
-        * Flexible.
-        * Easy and fast to set up. Roughly, around 15 minutes to anotate a page, 3 minutes to train an [Extremely Randomized Trees Classifier](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.65.7485&rep=rep1&type=pdf) and 3 seconds per page to get the baselines
-        * Mainly for academic use. 
+  * Flexible.
+  * Easy and fast to set up. Roughly, around 15 minutes to anotate a page, 3 minutes to train an [Extremely Randomized Trees Classifier](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.65.7485&rep=rep1&type=pdf) and 3 seconds per page to get the baselines
+  * Mainly for academic use. 
 
 
 ## Usage
@@ -23,7 +23,7 @@ Toolkit to locate the baselines in handwritten text pages
 #### To get the scores
 *  measures.sh corpus.lst HypotesisDir GroundTruthDir
     * This tool is based on the java program used in [ICDAR 2017 Competition on Baseline Detection (cBAD)](https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme)
-    * In this [paper](https://arxiv.org/pdf/1705.03311.pdf) the method used is explained.
+    * In this [paper](https://arxiv.org/pdf/1705.03311.pdf) the  used is explained.
   
 
 #### ConfigFile.cnf: a set of environtment variables in a plain text file
@@ -48,7 +48,7 @@ Toolkit to locate the baselines in handwritten text pages
 ## Authors
 
 * BaseLinPages is written by [**Moisés Pastor**](http://users.dsic.upv.es/~mpastorg/)
-* GT_Tool_PAGE is written by Jorge Martínez Vargas
+* GT_Tool_PAGE is written by Jorge Martínez Vargas and Moisés Pastor
 ## Contributors
 
 ## Install and compiling
