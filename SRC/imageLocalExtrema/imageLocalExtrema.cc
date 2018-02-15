@@ -54,20 +54,23 @@ void usage(char * nomProg){
   cerr << "Usage: "<<nomProg << " options" << endl;
   cerr << "      options:" << endl;
   cerr << "             -i inputfile" << endl;
-  cerr << "            [-t minum number of points per contourn (by default 25)]" << endl;
-  cerr << "            [-w width of half the window (by default 10)]" << endl;
+  cerr << "            [-t minum number of points per contourn (by default 5)]" << endl;
+  cerr << "            [-w width of half the window (by default 30)]" << endl;
   cerr << "            [-v verbosity(by default none)]" << endl;
 }
 //-----------------------------------------------------------
 int main( int argc, char** argv ) {
   string inFileName,outFileName;
 
-  int option, window=5, kernel_size=4 ;
-  unsigned int pTallMin=25; 
+  int option, window=30, kernel_size=4 ;
+  unsigned int pTallMin=20; 
   bool verbosity=false;
   bool graphicalMode=false;
 
-
+ if(argc == 1){
+    usage(argv[0]);
+    return -1;
+  }
   while ((option=getopt(argc,argv,"h:i:o:t:w:k:gv"))!=-1)
     switch (option)  {
     case 'i':
@@ -148,7 +151,7 @@ int main( int argc, char** argv ) {
 
 
 //-------------------------------------------------------------
-LocalMinima::LocalMinima(String inFileName,int window=10,int pTallMin=25, int kernel_size=5 ){
+LocalMinima::LocalMinima(String inFileName,int window=10,int pTallMin=30, int kernel_size=5 ){
   this->window = window;
   this->pTallMin=pTallMin;
   this->kernel_size = kernel_size;
