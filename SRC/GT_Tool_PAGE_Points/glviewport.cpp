@@ -386,12 +386,14 @@ void GLViewport::setRegions(QVector<TextRegion> *nregions){
 
     if(mode == LINE_MODE){
         MainWindow *mw = (MainWindow*) main_window;
-        selected_region = &(*regions)[0];
-        selected_region_index = 0;
-        mw->updateID(selected_region->id);
-        lines = &selected_region->lines;
-        selected_line=0;
-        selected_line_index=-1;
+	if (regions->size() > 0){
+	  selected_region = &(*regions)[0];
+	  selected_region_index = 0;
+	  mw->updateID(selected_region->id);
+	  lines = &selected_region->lines;
+	  selected_line=0;
+	  selected_line_index=-1;
+	}
     }
     calculateRegionHandles();
 }
@@ -597,7 +599,7 @@ void GLViewport::getPointClasses(){
       // Baselines
       line.clear();
       for(int p=0; p< (*regions)[reg].lines[lin].baseline.size() - 1; p++){       
-	for (int x =  (*regions)[reg].lines[lin].baseline[p].x; x <  (*regions)[reg].lines[lin].baseline[p+1].x; x++) {
+	for (int x =  (*regions)[reg].lines[lin].baseline[p].x; x <=  (*regions)[reg].lines[lin].baseline[p+1].x; x++) {
 	  
 	  int y=calc_y((*regions)[reg].lines[lin].baseline[p], (*regions)[reg].lines[lin].baseline[p+1], x);
 	  line.push_back(Point(x,y));
@@ -1045,6 +1047,8 @@ void GLViewport::keyPressEvent(QKeyEvent *event){
                 }
             }
         }
+       if (minimaPoints)
+	 getPointClasses();
     default:
         QGLWidget::keyPressEvent(event);
     }
