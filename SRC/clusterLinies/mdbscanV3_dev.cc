@@ -238,6 +238,25 @@ Point rotatePoint(Point p,double angle,Mat & img){
   return Point(x,y);
 }
 
+//---------------------------------------------------------------------
+Point rotatePoint(Point p,double angle, int rows, int cols){
+  if (angle == 0) return p;
+  
+  angle=angle*M_PI/180.0;
+
+  int x = p.x - cols/2;
+  int y = -p.y + rows/2;
+
+  int x1 = x*cos(angle) - y*sin(angle);
+  int y1 = x*sin(angle) + y*cos(angle);
+
+  x =  x1 + cols/2;
+  y = -y1 + rows/2;
+
+  return Point(x,y);
+}
+
+
 //----------------------------------------------------------
 void plotPoints(DbScan & dbscan, Mat grouped){
     
@@ -245,9 +264,11 @@ void plotPoints(DbScan & dbscan, Mat grouped){
   for(unsigned int i=0;i<dbscan.data.size();i++) {
     
     int label=dbscan.labels[i];
-    
-    int point_shape;
-    Scalar color;
+
+    cout << label << endl;
+    cout << dbscan.data[i]<< endl;
+    int point_shape=2;
+    Scalar color(255,0,0);
 
     if(label>NOISE){ // Not noise
       color=colors[label%numColors];
@@ -257,7 +278,7 @@ void plotPoints(DbScan & dbscan, Mat grouped){
       color=Scalar(128,128,128); //grey
     }
            
-    circle( grouped, dbscan.data[i], 2, color, point_shape );  
+    circle( grouped, dbscan.data[i], 5, color, point_shape );  
   }
 }
 
@@ -265,7 +286,7 @@ void plotPoints(DbScan & dbscan, Mat grouped){
 void plotPoints(vector<vector<vector<Point> > > & lines, Mat grouped){
     
   int point_shape=2;
-  Scalar color;
+  Scalar color(255,0,0);
   for (uint r = 0; r < lines.size(); r++) { 
     for(uint l=0; l<lines[r].size(); l++) {
       for (uint p = 0; p < lines[r][l].size(); p++) {
@@ -600,7 +621,7 @@ void updateXml(pugi::xml_document & page,  vector< vector< vector<Point> > > & l
 //---------------------------------------------------------------------
 void purgeLines(vector< vector<Point> > & lines, uint numMinPoints){
   for (uint l = 0; l < lines.size(); l++) {
-    if (lines[l].size() <= numMinPoints){
+    if (lines[l].size() < numMinPoints){
       lines.erase(lines.begin() + l);
       l--;
     }
@@ -768,7 +789,7 @@ vector< vector<Point> > getLines(vector<Point> rotated_points,int dist,int dens,
     repetir=false;
     novesClases=false;
     bool * leaf = isALeaf(*dbscan, maxAngleAllowed,thresholdDist);
-
+      
     for (int i = 0; i <= dbscan->numClasses; i++) {
       if (!leaf[i]){ 
 	dbscan->setDist(distClasses[i]-decrDist);
@@ -1000,7 +1021,7 @@ int main(int argc,char** argv ) {
     if (minY < 0 ) minY = 0;
     if (maxX > img.cols ) maxX = img.cols;
     if (maxY > img.rows ) maxY = img.rows;
-
+    
     // slopeClass rotator(img,Point(minX,minY),Point(maxX,maxY));
     slopeClass rotator(img, minX, minY,maxX,maxY);
     rotator.deslope();
@@ -1013,7 +1034,7 @@ int main(int argc,char** argv ) {
       rotated_points = selected_points;
     else{
       for (uint p = 0; p < selected_points.size(); p++){ 
-	rotated_points.push_back( rotatePoint(selected_points[p], -angle, img));
+	rotated_points.push_back( rotatePoint(selected_points[p], -angle, maxY-minY, maxX-minX));
       
 	//if (rotated_points[p].y < 0) rotated_points[p].y = 0;
 	//	if (rotated_points[p].y >= img.rows) rotated_points[p].y = img.rows-1;
@@ -1042,7 +1063,7 @@ int main(int argc,char** argv ) {
      
 	   linia.clear();
 	   for (uint p = 0; p < rotated_lines[l].size(); p++) {
-	     linia.push_back( rotatePoint(rotated_lines[l][p], angle, img));
+	     linia.push_back( rotatePoint(rotated_lines[l][p], angle,  maxY-minY, maxX-minX));
 	     
 	     if (linia[p].y < 0) linia[p].y = 0;
 	     if (linia[p].y >= img.rows) linia[p].y = img.rows-1;
@@ -1065,7 +1086,7 @@ int main(int argc,char** argv ) {
     Mat img_tmp = imread(inFileName,CV_LOAD_IMAGE_COLOR);    
     plotPoints(lines_finals,img_tmp);
     plotPolyLines(img_tmp,lines_finals,printPolyline);
-    plotRegions(img_tmp,regions );
+    //plotRegions(img_tmp,regions );
     imwrite(outFileName,img_tmp);
   } 
 }
