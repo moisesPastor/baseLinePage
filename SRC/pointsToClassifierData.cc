@@ -293,9 +293,9 @@ void getFeatures_moments(Mat & img, labeledpoint point, int rows, int cols){
   cout << mom.mu12 << ",";
   cout << mom.mu03 << ",";
   
-  // cout << mom.nu20 << ",";//Su valor aumentará cuanto mayor sea la componente HORIZONTAL de una figura.
+  cout << mom.nu20 << ",";//Su valor aumentará cuanto mayor sea la componente HORIZONTAL de una figura.
   //  //cout << mom.nu11 << ","; // indica el cuadrante en que se encuentra, si esta centrada -> 0
-  // cout << mom.nu02 << ",";//Su valor aumentará cuanto mayor sea la componente VERTICAL de una figura.
+  cout << mom.nu02 << ",";//Su valor aumentará cuanto mayor sea la componente VERTICAL de una figura.
   // // cout << ang << ",";
   // // cout << excentricitat << ",";
   // //cout <<  hu[1] <<",";

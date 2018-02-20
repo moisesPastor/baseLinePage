@@ -35,7 +35,7 @@ using namespace cv;
 using namespace std;
 
 const  int NOISE=-1;
-const int PENALITZACIO_Y=120;
+const int PENALITZACIO_Y=12;
 
 const int numColors=28;
 Scalar colors[numColors]={Scalar(255, 23, 0), Scalar(42, 0, 255), Scalar(255, 96, 0), Scalar(155, 0, 255), Scalar(17, 0, 255), Scalar(255, 0, 234), Scalar(0, 41, 255), Scalar(0, 255, 41), Scalar(143, 0, 255),Scalar(30, 0, 255), Scalar(209, 0, 255),  Scalar(255, 0, 0), Scalar(0, 48, 255),  Scalar(255, 0, 108), Scalar(255, 0, 228), Scalar(114, 0, 255), Scalar(255, 156, 0), Scalar(255, 0, 252), Scalar(255, 0, 89), Scalar(0, 0,255), Scalar(222, 0, 255), Scalar(255, 0, 11), Scalar(209, 255, 0), Scalar(0, 83, 255), Scalar(255, 0, 0), Scalar(0, 131, 255), Scalar(252, 0, 255), Scalar(255, 0, 143)};
@@ -418,7 +418,7 @@ vector <vector <cv::Point > > getRegions(pugi::xml_document & page){
       string string_point;
       while (point_stream >> string_point){
 	int cont_comas=0;
-	for (int i = 0; i < string_point.size(); i++) {
+	for (uint i = 0; i < string_point.size(); i++) {
 	  if (string_point[i] == ','){
 	    string_point[i] = ' ';
 	    cont_comas++;
@@ -713,7 +713,7 @@ bool * isALeaf(DbScan & dbscan, double maxAngAlowed, int thresDist){
     if (pointsClasses[clas].size() == 0) {continue;}
 
     double y_promig = 0;
-    double length_horiz = 0;
+    //double length_horiz = 0;
     
     vector<Point> classPoints=pointsClasses[clas];
     std::sort(classPoints.begin(), classPoints.end(), sort_points_func);
@@ -725,11 +725,11 @@ bool * isALeaf(DbScan & dbscan, double maxAngAlowed, int thresDist){
       double a=( atan((double)( endPoint.y - startPoint.y )/( endPoint.x - startPoint.x )));
       if (a < 0) a=-a;
       if ((a*180)/M_PI < maxAngAlowed){
-        length_horiz += sqrt(pow(startPoint.y - endPoint.y,2) + pow(startPoint.x - endPoint.x,2));
+        //length_horiz += sqrt(pow(startPoint.y - endPoint.y,2) + pow(startPoint.x - endPoint.x,2));
 	y_promig += endPoint.y + startPoint.y ;
       }
     }
-    length_horiz /=  (classPoints.size()-1) <= 0? DBL_MAX:(classPoints.size()-1);
+    //length_horiz /=  (classPoints.size()-1) <= 0? DBL_MAX:(classPoints.size()-1);
     
     for (uint p = 0; p < classPoints.size()-1; p++) {
       Point startPoint= classPoints[p];
@@ -769,7 +769,7 @@ bool * isALeaf(DbScan & dbscan, double maxAngAlowed, int thresDist){
 
 //--------------------------------------------------------------------
 vector< vector<Point> > getLines(vector<Point> rotated_points,int dist,int dens,int decrDist,int maxAngleAllowed, int thresholdDist, int verbosity, string & inFileName, string & outFileName){
-
+ static int iter=0;
   
   DbScan * dbscan= new DbScan(rotated_points,dist,dens,verbosity);
   dbscan->run();
@@ -780,9 +780,25 @@ vector< vector<Point> > getLines(vector<Point> rotated_points,int dist,int dens,
     distClasses[i]=dist;
   }
 
+  
+  if (verbosity == 2 && inFileName.size()!=0 && outFileName.size()!=0){
+      Mat img_tmp = imread(inFileName);  // caldria usar la imatge rotada.
+      plotPoints(*dbscan, img_tmp);
+      plotEllipseNeighbourhood(*dbscan, img_tmp, distClasses);
+
+      std::stringstream iteracio;
+      iteracio << iter;
+      cerr << "writing " << outFileName+"_iteracio_"+iteracio.str()+".png" << endl;
+      try{
+    	imwrite(outFileName+"_iteracio_"+iteracio.str()+".png",img_tmp);
+      }catch (cv::Exception e){
+    	cout << "ERROR en " << "writing " << outFileName+"_iteracio_"+iteracio.str()+".png" << endl;
+      }
+    }
+
   int numClassesAnt=dbscan->numClasses;
   bool repetir;
-  static int iter=0;
+  //static int iter=0;
   bool novesClases = false;
   
   do {
@@ -811,20 +827,20 @@ vector< vector<Point> > getLines(vector<Point> rotated_points,int dist,int dens,
 
     iter++;
     
-    if (verbosity == 2 && novesClases && inFileName.size()!=0 && outFileName.size()!=0){
-      Mat img_tmp = imread(inFileName);  // caldria usar la imatge rotada.
-      plotPoints(*dbscan, img_tmp);
-      plotEllipseNeighbourhood(*dbscan, img_tmp, distClasses);
+    // if (verbosity == 2 && novesClases && inFileName.size()!=0 && outFileName.size()!=0){
+    //   Mat img_tmp = imread(inFileName);  // caldria usar la imatge rotada.
+    //   plotPoints(*dbscan, img_tmp);
+    //   plotEllipseNeighbourhood(*dbscan, img_tmp, distClasses);
 
-      std::stringstream iteracio;
-      iteracio << iter;
-      cerr << "writing " << outFileName+"_iteracio_"+iteracio.str()+".png" << endl;
-      try{
-    	imwrite(outFileName+"_iteracio_"+iteracio.str()+".png",img_tmp);
-      }catch (cv::Exception e){
-    	cout << "ERROR en " << "writing " << outFileName+"_iteracio_"+iteracio.str()+".png" << endl;
-      }
-    }
+    //   std::stringstream iteracio;
+    //   iteracio << iter;
+    //   cerr << "writing " << outFileName+"_iteracio_"+iteracio.str()+".png" << endl;
+    //   try{
+    // 	imwrite(outFileName+"_iteracio_"+iteracio.str()+".png",img_tmp);
+    //   }catch (cv::Exception e){
+    // 	cout << "ERROR en " << "writing " << outFileName+"_iteracio_"+iteracio.str()+".png" << endl;
+    //   }
+    // }
     
     if (verbosity == 3 && novesClases && inFileName.size()!=0 && outFileName.size()!=0){
       Mat img_tmp = imread(inFileName);
@@ -863,7 +879,7 @@ void usage (char * programName){
   cerr << "             [-n #int] density in point (default 2)"<< endl;
   cerr << "             [-D #int] decrDistStep (default 5)" << endl;
   cerr << "             [-a #int] max angle allowed (by default 60 degrees)" << endl;
-  cerr << "             [-m #int] min num of points per baseline to be considered (by default 3)" << endl;
+  cerr << "             [-m #int] min num of points per baseline to be considered (by default 2)" << endl;
   cerr << "             [-s ] strait baseline (by default poliline)" << endl;
   cerr << "             [-N #int] max num of points per baseline"<< endl;
   cerr << "             [-v #int verbosity] " << endl;
@@ -875,7 +891,7 @@ int main(int argc,char** argv ) {
   int decrDist=5;
   int option;
   int maxAngleAllowed=60;
-  int MIN_NUM_POINTS_LINE=3;
+  int MIN_NUM_POINTS_LINE=2;
   int verbosity=0;
   bool printPolyline=true;
   int finalNumberOfPointsPerLine=-1;
@@ -977,9 +993,11 @@ int main(int argc,char** argv ) {
     cerr << "ERROR: file: " << xmlFileName << " cannot not been opened" << endl;
     exit(-1);
   }
+  
   vector <vector <cv::Point> >  regions= getRegions(page);
   vector< vector< vector<Point> > > rotated_lines;
-  //cout << "NUMBER of regions " << regions.size() << endl;
+  
+  //si no hi han regions defindes
   if (regions.size() <= 0){
     vector<Point> r;
     r.push_back(Point(0,0));
@@ -990,13 +1008,14 @@ int main(int argc,char** argv ) {
     regions.push_back(r);
   }
 
-  // seleccionem els punts dins de la regio.
+ 
   vector<Point> selected_points;
   vector< vector< vector<Point> > > lines_finals;
   vector<Point> rotated_points;
   
   for (uint r = 0; r < regions.size(); r++) {
     selected_points.clear();
+    // seleccionem els punts dins de la regio.
     for (uint p = 0; p < points.size(); p++) {
       if(pointPolygonTest(regions[r], points[p], false) == 1)
 	selected_points.push_back(points[p]);
@@ -1007,7 +1026,7 @@ int main(int argc,char** argv ) {
     int minY=img.rows;
     int maxY=0;
    
-    for (int p = 0; p < regions[r].size(); p++) {
+    for (uint p = 0; p < regions[r].size(); p++) {
       if (minX > regions[r][p].x)
         minX = regions[r][p].x;
       if (maxX <  regions[r][p].x)
@@ -1046,6 +1065,7 @@ int main(int argc,char** argv ) {
       dist = maxX - minX;
 
       vector< vector<Point> > rotated_lines = getLines(rotated_points, dist, dens, decrDist, maxAngleAllowed, thresholdDist, verbosity, inFileName, outFileName);
+      
       purgeLines(rotated_lines,MIN_NUM_POINTS_LINE);
       fussionLines(rotated_lines,img,maxAngleAllowed);
 
