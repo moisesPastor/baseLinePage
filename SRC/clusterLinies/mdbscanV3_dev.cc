@@ -568,14 +568,14 @@ void updateXml(pugi::xml_document & page,  vector< vector< vector<Point> > > & l
 	  normaliza_traza( lines_finals[r][l],numPointsPerLine );
 
   
-  if (page.child("PcGts").child("Page").child("TextRegion") == 0){ // no regions given
-    pugi::xml_node reg = page.child("PcGts").child("Page").append_child("TextRegion");
-    pugi::xml_attribute id_attr = reg.append_attribute("id");
-    id_attr.set_value("1");
-    pugi::xml_node reg_coords=reg.append_child("Coords");
-    pugi::xml_attribute reg_points_attr = reg_coords.append_attribute("points");
-    reg_points_attr.set_value("");
-  } else {
+  // if (page.child("PcGts").child("Page").child("TextRegion") == 0){ // no regions given
+  //   pugi::xml_node reg = page.child("PcGts").child("Page").append_child("TextRegion");
+  //   pugi::xml_attribute id_attr = reg.append_attribute("id");
+  //   id_attr.set_value("1");
+  //   pugi::xml_node reg_coords=reg.append_child("Coords");
+  //   pugi::xml_attribute reg_points_attr = reg_coords.append_attribute("points");
+  //   reg_points_attr.set_value("xx");
+  // } else {
     for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
       for (pugi::xml_node text_line = text_region.child("TextLine"); text_line;) {
 	pugi::xml_node next = text_line.next_sibling("TextLine");      //raro, pero no tocar
@@ -583,7 +583,7 @@ void updateXml(pugi::xml_document & page,  vector< vector< vector<Point> > > & l
 	text_line = next; //això mateix
       }
     }
-  }
+    //}
   
   int n_reg=0;
   for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
@@ -1006,6 +1006,18 @@ int main(int argc,char** argv ) {
     r.push_back(Point(0,img.rows));   
    
     regions.push_back(r);
+
+    // no regions given
+    pugi::xml_node reg = page.child("PcGts").child("Page").append_child("TextRegion");
+    pugi::xml_attribute id_attr = reg.append_attribute("id");
+    id_attr.set_value("1");
+    pugi::xml_node reg_coords=reg.append_child("Coords");
+    pugi::xml_attribute reg_points_attr = reg_coords.append_attribute("points");
+    stringstream reg_coord;
+    reg_coord << "0,0 " << img.cols << ",0 " << img.cols << "," <<  img.rows << " 0," <<img.rows;
+    reg_points_attr.set_value(reg_coord.str().c_str());
+
+    
   }
 
  

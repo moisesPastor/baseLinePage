@@ -21,7 +21,7 @@
 using namespace cv;
 using namespace std;
 
-bool verbosity=false;
+int verbosity=0;
 bool demo=false;
 int MIN_NUM_POINTS_LINE=4;  //VORE QUE FER AMB AÇO
 
@@ -253,27 +253,27 @@ vector<Point>  millorCami(Mat & rotada, vector< vector<Point> >  & lines_rotades
       int pes_nord_est=255-rotada.at<uchar>(y,x) + 255-rotada.at<uchar>(y-1,x+1);
 
 
-      if (! graf->addEdge(punt, punt_nord, pes_nord) && verbosity){
+      if (! graf->addEdge(punt, punt_nord, pes_nord) && verbosity > 1){
 	cout << "NORD "<< punt << " ("<< punt%rotada.cols << "," << punt/rotada.cols << ")"<< endl;
 	cout << "NORD "<< punt_nord << " ("<< punt_nord %rotada.cols << "," << punt_nord/rotada.cols << ")"<< endl << endl;
       }
     
-      if (! graf->addEdge(punt, punt_nord_est, pes_nord_est) && verbosity ){
+      if (! graf->addEdge(punt, punt_nord_est, pes_nord_est) && verbosity > 1 ){
 	cout << "NORD-EST "<< punt << " ("<< punt%rotada.cols << "," << punt/rotada.cols << ")"<< endl;
 	cout << "NORD-EST "<< punt_nord_est << "("<< punt_nord_est %rotada.cols << "," << punt_nord_est/rotada.cols << ")"<< endl << endl;
       }
 
-      if (! graf->addEdge(punt, punt_est,pes_est+5) && verbosity  ){
+      if (! graf->addEdge(punt, punt_est,pes_est+5) && verbosity > 1 ){
 	cout << "EST "<< punt << " ("<< punt%rotada.cols << "," << punt/rotada.cols << ")"<< endl;
 	cout << "EST "<< punt_est << " ("<< punt_est %rotada.cols << "," << punt_est/rotada.cols << ")"<< endl << endl;
       }
       
-      if (! graf->addEdge(punt,punt_sud_est, pes_sud_est+15) && verbosity  ){
+      if (! graf->addEdge(punt,punt_sud_est, pes_sud_est+15) && verbosity > 1 ){
 	cout << "SUD-EST "<< punt << " ("<< punt%rotada.cols << "," << punt/rotada.cols << ")"<< endl;
 	cout << "SUD-EST "<< punt_sud_est << " ("<< punt_sud_est %rotada.cols << "," << punt_sud_est/rotada.cols << ")" << endl << endl;
       }
 
-      if (! graf->addEdge(punt,punt_sud, pes_sud+20) && verbosity  ){
+      if (! graf->addEdge(punt,punt_sud, pes_sud+20) && verbosity > 1 ){
 	cout << "SUD "<< punt << " ("<< punt%rotada.cols << "," << punt/rotada.cols << ")"<< endl;
 	cout << "SUD "<< punt_sud << " ("<< punt_sud %rotada.cols << "," << punt_sud/rotada.cols << ")" << endl << endl;
       }   
@@ -309,7 +309,7 @@ vector<Point>  millorCami(Mat & rotada, vector< vector<Point> >  & lines_rotades
       pos=rotada.cols*(y+1) -1;
     }
   }
-  if (verbosity)
+  if (verbosity > 1)
     cout << "Cami mes barat, cost -> " << mesBarat << endl;
   
   //recuperar el cami    
@@ -323,48 +323,27 @@ vector<Point>  millorCami(Mat & rotada, vector< vector<Point> >  & lines_rotades
       int y=pos/rotada.cols;
 
       if (x != x_ant && x < rotada.cols){
-	//cami[x]=Point(x,y);
 	cami.push( Point(x,y));
-	//circle( rotada, Point(x,y), 2, Scalar(0), 2);
 	x_ant=x;
       }
       pos=path[pos];
     }
-    // if (pos != orig)
-    // cami.push_back( Point(orig%rotada.cols,orig/rotada.cols));
+
     x_ant--;
     while (x_ant >=0){
       cami.push( Point(x_ant,orig/rotada.cols));
-      //cami[x_ant]= Point(x_ant,orig/rotada.cols);
-      // circle( rotada, Point(x_ant,orig/rotada.cols), 2, Scalar(0), 2);
+
       x_ant--;
     }
   }
 
-  
-  //cout << cami.size()<< " " << cami.at(0) << " " << cami.at(cami.size()-1)<<endl;
+
   delete graf;
 
-  if(demo && verbosity){
-    //circle( rotada, Point(x_ini,y_ini), 2, Scalar(150), 2);
-    static int LIN=0;
-    std::stringstream iteracio;
-    iteracio << LIN++;  
-    string nom="kk_sqX"+iteracio.str()+".jpg";//LIN+".jpg";
-    imwrite(nom,rotada);
-  }
-  
   while (!cami.empty()) {
     cami_tornar.push_back(cami.top());
     cami.pop();
   }
- 
-  // for (int i = 0; i < cami_tornar.size()-1 && cami_tornar.size() > 0; i++) {
-  //   //if (cami[i].x +1 != cami[i+1].x)
-  //   if (cami_tornar.at(i).x + 1 != cami_tornar.at(i+1).x)
-  //     cout << " pos "<<i << " "<< cami_tornar.at(i)<< " " << cami_tornar.at(i+1) << endl;
-  //   //cout << " pos "<<i << " "<< cami[i]<< " " << cami[i+1] << endl;
-  // }
 
 
   return cami_tornar;
@@ -399,12 +378,12 @@ bool getLineImage(vector< vector<Point> > & lines,Mat & img,vector< vector<Point
   slopeClass rotator(linia);
   linia.release();
   rotator.deslope();
-  Mat rotada=rotator.getRotada();
-  double angle=rotator.getSlopeAngle();
  
-  if (verbosity)
-    cout << "angle "<< angle << endl;
-
+  
+  double angle=rotator.getSlopeAngle();
+  rotator.rotar(-angle);
+  Mat rotada=rotator.getRotada();
+  
  //rotem els punts
   vector< vector<Point> >lines_rotades(2);
   for (int l = 0; l <2; l++) 
@@ -486,12 +465,12 @@ void fussionLines(vector< vector<Point> > & lines, Mat & img){
 
     //if (media_central + 10 > media_down){
     if (media_down - media_central < media_total/3){
-      if (verbosity){
-	cerr << "WARNING: lines "<< lin_num << " and " <<lin_num+1 << " crossed" << endl;
-	cerr << "media_central = " << media_central << " media_down = " << media_down<< endl;
-	cerr << "      size 1 " << lines[lin_num].size() << endl;
-	cerr << "      size 2 " << lines[lin_num+1].size() << endl;
-      }
+      // if (verbosity){
+      // 	cerr << "WARNING: lines "<< lin_num << " and " <<lin_num+1 << " crossed" << endl;
+      // 	cerr << "media_central = " << media_central << " media_down = " << media_down<< endl;
+      // 	cerr << "      size 1 " << lines[lin_num].size() << endl;
+      // 	cerr << "      size 2 " << lines[lin_num+1].size() << endl;
+      // }
 
       //afegix els punts de la segona linia a la primera
       lines[lin_num].insert(lines[lin_num].end(), lines[lin_num+1].begin(), lines[lin_num+1].end());
@@ -500,10 +479,10 @@ void fussionLines(vector< vector<Point> > & lines, Mat & img){
       //esborra la linia sobrant
       lines.erase(lines.begin() + lin_num+1);
             
-      if (verbosity){
-	cerr <<"      Num de linies " << lines.size() << endl << endl;
-	cerr <<"      total  "<< lines[lin_num].size() << endl<< endl;
-      }
+      // if (verbosity){
+      // 	cerr <<"      Num de linies " << lines.size() << endl << endl;
+      // 	cerr <<"      total  "<< lines[lin_num].size() << endl<< endl;
+      // }
       lin_num--; // per a repetir la linia
       crossed=true;
       break; //tornem a procesarla
@@ -672,14 +651,14 @@ void use (char * programName){
 
   cerr << "Usage: "<<programName << " options " << endl;
   cerr << "      options:" << endl;
-  cerr << "             -x #String inputPageXmlFile" << endl;
-  cerr << "             [-i #String ] inputImageFile" << endl; 
+  cerr << "             -x #String; inputPageXmlFile" << endl;
+  cerr << "             -i #String;  inputImageFile" << endl; 
   //cerr << "             [-l #int line to be extracted (by default all)]" << endl;
   cerr << "             [-o #String ] outputImageFile] " << endl;
   cerr << "             [-d ] demo (by default false)]" << endl;
   cerr << "             [-m #int ] (by default 4)] min num points per line" << endl;
   cerr << "             [-t ] segment from the col 0 to numCols (by default no)"<< endl;
-  cerr << "             [-v verbosity (by default false)]" << endl;
+  cerr << "             [-v #int ] level of verbosity (by default 0)]" << endl;
 
 }
 
@@ -690,7 +669,7 @@ int main(int argc,char** argv ) {
   //int line=-1; //means all lines must be extracted
   bool deBatABat=false;
 
-  while ((option=getopt(argc,argv,"i:x:dm:o:tv"))!=-1)
+  while ((option=getopt(argc,argv,"i:x:dm:o:tv:"))!=-1)
     switch (option)  {
     case 'i':
       inFileName = optarg;
@@ -711,7 +690,7 @@ int main(int argc,char** argv ) {
       MIN_NUM_POINTS_LINE = atoi(optarg);
       break;
     case 'v':
-      verbosity=true;
+      verbosity=atoi(optarg);
       break;
     default:
       use(argv[0]);
@@ -729,7 +708,7 @@ int main(int argc,char** argv ) {
     img = imread(inFileName,0);
   }
   if (!img.data) {
-    cerr << argv[0] << " Error: image file do not contains data " << endl;
+    cerr << argv[0] << ": ERROR: image file " << inFileName.c_str() << " do not contains data " << endl;
     return (-1);
   }
 
@@ -742,17 +721,18 @@ int main(int argc,char** argv ) {
 
  vector <vector <cv::Point> >  lines= getBaselines(page);
   if (lines.size()<=0){
-    cerr << "ERROR: file "<< xmlFileName << " do not contains lines "<< endl;
+    cerr << "Warning: file "<< xmlFileName << " do not contains lines "<< endl;
     exit(-1);
   }
 
   //llevem el skew de la pagina
   slopeClass desquewer(img);
   desquewer.deslope();
-  Mat img_rotated=desquewer.getRotada();
+  
   double angleSlope=desquewer.getSlopeAngle();
-
-
+  desquewer.rotar(-angleSlope);
+  Mat img_rotated=desquewer.getRotada();
+  
   for (int l = 0; l < lines.size(); l++) { 
     //ordenem els punts d'esquerre a dreta
     std::sort(lines[l].begin(), lines[l].end(), sort_points_func);
@@ -769,32 +749,24 @@ int main(int argc,char** argv ) {
   //fussionem  linies base  ARA NO CAL PERQUE PARTIM DE LINIS BASE
   fussionLines(lines, img_rotated);
 
-  //ajustem el primer i ultim punt a la imatge
-  // for (int l = 0; l < lines.size(); l++) {
-  //   lines[l][0].x= 0;
-  //   lines[l][lines[l].size()-1].x=img.cols-1;
-  //   if (lines[l][0].y < 0) lines[l][0].y=0;
-  //   if (lines[l][lines[l].size()-1].y >= img.rows) lines[l][lines[l].size()-1].y=img.rows - 1;
-  // }
+  if (verbosity > 0)
+    cout << "Number of lines " << lines.size() << endl;
 
+  
  //afegim una linia artificial baix de tot per a poder tindre vora en la segmentacio
   vector<Point> ultimaLinia;
   ultimaLinia.push_back(Point(img.cols/4, img.rows-1));
   ultimaLinia.push_back(Point(img.cols/1.5, img.rows-1));
   lines.push_back(ultimaLinia);
  
-  //RLSA(img_demo);
-  //GaussianBlur( img, img_demo, Size( 15, 15 ), 0, 0 );
-
-  if (verbosity)
-    cout << "Number of lines " << lines.size() << endl;
-
   vector< vector<Point> >segmentacio(0);
   for (int l = 0; l < lines.size()-1; l++) {      
-    if (verbosity)
+    if (verbosity > 1)
       cout << endl<< "processing line "<< l+1<< endl;
-    if (!getLineImage(lines, img_rotated, segmentacio, l))
-      cerr << "WARNING: Crossed lines !!! " <<l << " and " << l+1<< endl;
+    
+    getLineImage(lines, img_rotated, segmentacio, l);
+    //if (!getLineImage(lines, img_rotated, segmentacio, l))
+    //  cerr << "WARNING: Crossed lines !!! " <<l << " and " << l+1<< endl;
   }
 
 
@@ -810,8 +782,6 @@ int main(int argc,char** argv ) {
   linia_zero.push_back(Point(segmentacio[0][ segmentacio[0].size()-1].x, 0));
   
   segmentacio.insert(segmentacio.begin(), linia_zero);
-
-
   
   vector< map<int,int> > seg_lines;
 
@@ -819,19 +789,22 @@ int main(int argc,char** argv ) {
   for (int l = 0; l < segmentacio.size(); l++){ 
     map<int,int> seg;
     for (int p = 0; p < segmentacio[l].size(); p++) {
-      Point punt(rotatePoint(segmentacio[l][p], angleSlope,img));
-      seg[punt.x]=punt.y;
+      //Point punt(rotatePoint(segmentacio[l][p], angleSlope,img));
+      //seg[punt.x]=punt.y;
+      seg[segmentacio[l][p].x] = segmentacio[l][p].y;
      
     }
     
-    Point primer=rotatePoint(segmentacio[l][0], angleSlope,img);
+    // Point primer=rotatePoint(segmentacio[l][0], angleSlope,img);
+    Point primer(segmentacio[l][0]);
     if (primer.x > 0){
       int x_ini=primer.x - 1;
       for (int x = x_ini; x >=0 ; x--)  
         seg[x]=primer.y;
     }
 
-    Point ultim=rotatePoint(segmentacio[l][segmentacio[l].size()-1], angleSlope, img);
+    //Point ultim=rotatePoint(segmentacio[l][segmentacio[l].size()-1], angleSlope, img);
+    Point ultim(segmentacio[l][segmentacio[l].size()-1]);
     if (ultim.x < img.cols - 1){
       for (int x = ultim.x+1; x < img.cols; x++)
 	seg[x]=ultim.y;
@@ -851,14 +824,14 @@ int main(int argc,char** argv ) {
   inFileName.erase(found,-1);
 
   if (demo){
-    pintaLinies(img,deBatABat, lines, seg_lines);
+    pintaLinies(img_rotated,deBatABat, lines, seg_lines);
     string demoFileName;
     if (outputFileName.size() >0)
       demoFileName=outputFileName;
     else
       demoFileName=inFileName+"_segmented.jpg";
 
-    imwrite(demoFileName,img);
+    imwrite(demoFileName,img_rotated);
     
   } else {
     //li llevem la extensio al nom de fitx d'entrada
@@ -866,17 +839,17 @@ int main(int argc,char** argv ) {
     for (uint seg = 0; seg < segmentacio.size()-1; seg++) {
 
       int xini=0;
-      int xfi=img.cols-1;
+      int xfi=img_rotated.cols-1;
 
       if (!deBatABat){
         //mana la linia base de baix 
         xini=lines[seg+1][0].x;
         if (xini < 0) xini=0;
         xfi=lines[seg+1][lines[seg+1].size()-1].x ;
-        if (xfi > img.cols) xfi=img.cols-1;
+        if (xfi > img_rotated.cols) xfi=img_rotated.cols-1;
       }
 
-      int y_min= img.rows;
+      int y_min= img_rotated.rows;
       int y_max = 0;
 
      
@@ -888,12 +861,13 @@ int main(int argc,char** argv ) {
 
       Mat img_lin(y_max-y_min+1, xfi-xini,  CV_8UC1, Scalar(255));
       
-      for (int x = xini; x < xfi && x< seg_lines[seg+1].size(); x++) {        
-	for (int y = seg_lines[seg][x]; y < seg_lines[seg+1][x]; y++) {
-	  if ( y < img.rows){
-      	    img_lin.at<uchar>(y-y_min, x-xini) = img.at<uchar>(y,x);
+      for (int x = xini; x < xfi && x< seg_lines[seg+1].size(); x++) {
+	if ( seg_lines[seg].find(x) != seg_lines[seg].end())
+	  for (int y = seg_lines[seg][x]; y < seg_lines[seg+1][x]; y++) {
+	    if ( y < img_rotated.rows){
+	      img_lin.at<uchar>(y-y_min, x-xini) = img_rotated.at<uchar>(y,x);
+	    }
 	  }
-	}
       }
 
 
