@@ -38,7 +38,7 @@ source $4
      NOM=`echo -e ${DOUT}_$NAME_ERT"/"${Nom}`
      echo $NOM
      [ -f ${NOM}.min ] || \
-     imageLocalExtrema -i ${NOM}.jpg -w $MINIMA_WINDOW #-t $MIN_POINTS_CONTOUR
+     imageLocalExtrema -i ${NOM}.jpg -w $MINIMA_WINDOW -t $MIN_POINTS_CONTOUR -k $MIN_KERNEL_SIZE
 
      [ -f ${NOM}.data ] || \
      pointsToClassifierData -i ${NOM}.jpg   -p ${NOM}.min  > ${NOM}.data
@@ -47,7 +47,7 @@ source $4
   done
 
    echo "classifying"
-   ext_rand_trees -l ${mindata} -m classify -t ${ERT}  -p $MINIM_PROB_TO_TRUE
+   ext_rand_trees -l ${mindata} -m classify -t ${ERT}  
    status=$?
    if test ${status} -ne 0
    then
@@ -68,7 +68,7 @@ source $4
 
      paste -d " " ${NOM}.min ${NOM}.cmin > ${NOM}.qmin
 
-      mdbscan -p ${NOM}.qmin  -i ${NOM}.jpg -x ${NOM}.xml -d $DBSCAN_EPSILON_DIST -m $DBSCAN_MIN_POINTS_PER_LINE -a $DBSCAN_MAX_ANGLE_INTO_A_LINE -D $DBSCAN_DECREMENT_STEP -N $DBSCAN_FINAL_POINTS_PER_LINE $DBSCAN_STRAIT_BASELINES
+     mdbscan -p ${NOM}.qmin  -i ${NOM}.jpg -x ${NOM}.xml -d $DBSCAN_EPSILON_DIST -m $DBSCAN_MIN_POINTS_PER_LINE -a $DBSCAN_MAX_ANGLE_INTO_A_LINE -D $DBSCAN_DECREMENT_STEP -N $DBSCAN_FINAL_POINTS_PER_LINE $DBSCAN_STRAIT_BASELINES
 
    done
 
