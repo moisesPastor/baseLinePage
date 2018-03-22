@@ -5,13 +5,14 @@ OTHER_LIBS=-lpugixml
 all: baseLinePage GTTool 
 baseLinePage: 
 	mkdir ../BIN || echo "../BIN directory already exists"
+	make -C LIB
 	make -C clusterLinies;
 	make -C imageLocalExtrema 
 	make -C Extremely_Randomized_Trees
 	make -C labelPointsFromBaselines
 	make -C lineExtractor 
-	g++ -o pointsToClassifierData pointsToClassifierData.cc  ${OPEN_LIBS} -O3
-	g++ -o drawBaselines drawBaselines.cc  ${OPEN_LIBS} ${OTHER_LIBS} -O3
+	g++ -o pointsToClassifierData pointsToClassifierData.cc ${OPEN_LIBS} -O3
+	g++ -o drawBaselines drawBaselines.cc  LIB/libPoints.o LIB/libXmlPAGE.o -ILIB ${OPEN_LIBS} ${OTHER_LIBS} -O3
 	cp clusterLinies/mdbscan imageLocalExtrema/imageLocalExtrema Extremely_Randomized_Trees/ext_rand_trees labelPointsFromBaselines/labelPointsFromBaselines pointsToClassifierData drawBaselines lineExtractor/lineExtractor TranskribusBaseLineEvaluationScheme-0.1.3-jar-with-dependencies.jar ../BIN
 
 GTTool:

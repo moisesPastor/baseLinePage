@@ -112,7 +112,7 @@ void Graf::dijkstra(int origen){
     if (!visitats[v]){
       visitats[v]=true;
       vector<int> adj = adjacentsDe(v);
-      for(int a=0; a<adj.size(); a++){
+      for(uint a=0; a<adj.size(); a++){
 	int w = adj[a];
 	if (distMin[w] > distMin[v]+pes(v,w)){
 	  distMin[w] = distMin[v]+pes(v,w);

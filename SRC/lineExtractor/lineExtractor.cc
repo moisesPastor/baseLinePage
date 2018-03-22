@@ -16,6 +16,7 @@
  *  Created on: 20/10/2017
  *      Author: Moisés Pastor i Gadea
  */
+#include "libXmlPAGE.h"
 
 #include <unistd.h>
 
@@ -32,13 +33,15 @@
 #include "Graf.h"
 #include "slopeClass.h"
 #include "pugixml.hpp"
+#include "libXmlPAGE.h"
+#include "libPoints.h"
 
 using namespace cv;
 using namespace std;
 
 int verbosity=0;
 bool demo=false;
-int MIN_NUM_POINTS_LINE=4;  //VORE QUE FER AMB AÇO
+//int MIN_NUM_POINTS_LINE=4;  //VORE QUE FER AMB AÇO
 
 
 //---------------------------------------------------------------------
@@ -98,21 +101,6 @@ inline int calc_y(Point startPoint, Point endPoint, int x){
   return y;
 }
 
-//---------------------------------------------------------------------
-Point rotatePoint(Point p,double angle,Mat & img){
-  angle=angle*M_PI/180.0;
-
-  double x = p.x - img.cols/2;
-  double y = -p.y + img.rows/2;
-  //cout << "("<<p.x << ","<< p.y <<") -> ";
-  double x1 = x*cos(angle) - y*sin(angle);
-  double y1 = x*sin(angle) + y*cos(angle);
-
-  x =  (int)(x1+0.5) + img.cols/2;
-  y = (int)(-y1-0.5) + img.rows/2;
-
-  return Point(x,y);
-}
 //----------------------------------------------------------
 void loadPolyLines(string linesFileName,vector< vector<Point> > & lines){
 
@@ -191,9 +179,9 @@ void loadPolyLines(string linesFileName,vector< vector<Point> > & lines){
    }
 
    cont_line++;
-   if (points.size() >= MIN_NUM_POINTS_LINE){
+   // if (points.size() >= MIN_NUM_POINTS_LINE){
      lines.push_back(points);  
-   }
+     //}
   }
 }
 
@@ -365,7 +353,7 @@ vector<Point>  millorCami(Mat & rotada, vector< vector<Point> >  & lines_rotades
 }
 
 //----------------------------------------------------------
-bool getLineImage(vector< vector<Point> > & lines,Mat & img,vector< vector<Point> > & segmentacio , unsigned int lin_num){
+bool getLineImage(vector< vector<Point> > & lines,Mat & img,vector< vector<Point> > & segmentacio , unsigned int lin_num, Rect regio){
 
   //obtenim les vores de la imatge a tallar
   int y_min=INT_MAX;
@@ -383,13 +371,10 @@ bool getLineImage(vector< vector<Point> > & lines,Mat & img,vector< vector<Point
   if (y_min + 10 > y_max) return false;
 
   // using clone
-  Mat linia=img(Rect(0,y_min, img.cols, y_max-y_min+1)).clone();
-  /*
-  std::stringstream iteracio;
-  iteracio << lin_num;  
-  string nom="kk_noRot."+iteracio.str()+".jpg";
-  imwrite(nom,linia);
-  */
+  Mat linia=img(Rect(regio.tl().x, y_min, regio.br().x-regio.tl().x, y_max-y_min+1)).clone();
+
+
+  
   slopeClass rotator(linia);
   linia.release();
   rotator.deslope();
@@ -437,6 +422,7 @@ bool getLineImage(vector< vector<Point> > & lines,Mat & img,vector< vector<Point
     for (int i = 0; i < cami_baix.size(); i++) {
       cami_baix[i]=Point(rotatePoint(cami_baix[i],angle,rotada));
       cami_baix[i].y+=y_min; //relatiu a la imatge general
+      cami_baix[i].x+=regio.tl().x;
       if (cami_baix[i].y < 0) cami_baix[i].y=0;
     }
   
@@ -507,7 +493,7 @@ void fussionLines(vector< vector<Point> > & lines, Mat & img){
   if (crossed)
     fussionLines(lines,img);
 }
-
+//----------------------------------------------------------
 void purgarSegmentacio(  vector< vector<Point> >segmentacio, Mat img){
   for (int c = 0; c < segmentacio.size();c++) {
       for (int i = 0; i < segmentacio[c].size()-1; i++) {
@@ -524,97 +510,7 @@ void purgarSegmentacio(  vector< vector<Point> >segmentacio, Mat img){
   }
 }
 
-vector <vector <cv::Point > > getBaselines(pugi::xml_document & page){
-
-  vector< vector <cv::Point > > baselines;
-  vector<cv::Point> tmp_baseline;
-
-for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
-    
-    for (pugi::xml_node line_region = text_region.child("TextLine"); line_region; line_region = line_region.next_sibling("TextLine")){   
-      tmp_baseline.clear();
-      std::vector<std::string> string_values;
-      string point_string = line_region.child("Baseline").attribute("points").value();
-      
-      if(point_string != ""){
-
-        istringstream point_stream(point_string);
-        std::string string_point;
-        while (point_stream >> string_point){
-          int cont_comas=0;
-          for (int i = 0; i < string_point.size(); i++) {
-            if (string_point[i] == ','){
-              string_point[i] = ' ';
-              cont_comas++;
-            }
-          }
-
-          if (cont_comas != 1){
-            cerr << "drawBaselines ERROR: regions cords bad format"<< endl;
-            exit(-1);
-          }     
-
-          int x,y;
-          istringstream(string_point) >> x >> y;;
-          tmp_baseline.push_back(cv::Point(x,y));
-        }
-        baselines.push_back(tmp_baseline);        
-      }      
-    }
-  }
-  return baselines;
-}
-
-void normaliza_traza(vector<Point> & baseline, int NumPuntsNuevo=10){
-  vector<Point> puntos(baseline);
- 
- if (baseline.size()<=0) { 
-      cerr << "WARNING: baseline with "<< baseline.size()<< " points" << endl;
-      return;
-  }
-
-  baseline.clear();
-
-  // calculamos el vector de distancias desde el punto inicial a cualquier otro
-  int DistEntrePuntos;
-  double * D=new double[puntos.size()];
-  D[0]=0;
-  for (uint j = 1; j < puntos.size(); j++) {
-    int DX=(puntos[j].x - puntos[j-1].x);
-    int DY=(puntos[j].y - puntos[j-1].y);
-    D[j]=D[j-1]+sqrt((double)DX*DX+DY*DY);
-  }
-  
-  // si no se recibe, se distribuyen los puntos que ya hay equidistantemente
-  if (NumPuntsNuevo == 0){ 
-    NumPuntsNuevo=puntos.size();
-  }
-
-  DistEntrePuntos=D[puntos.size()-1]/(NumPuntsNuevo-1);
-  
-  // ponemos el punto inicial donde estaba el original
-   baseline.push_back(puntos[0]);
-  int n=1;
-    
-  for (int j = 1; j < NumPuntsNuevo-1; j++) {
-    while (!((D[n-1] <= j*DistEntrePuntos) && (j*DistEntrePuntos <= D[n]))) n++;
-    float C;
-    if (D[n-1]==D[n]) C=1;
-    else C=(j*DistEntrePuntos-D[n-1])/(D[n]-D[n-1]);
-    
-    float TX=puntos[n-1].x + (puntos[n].x - puntos[n-1].x)*C;
-    float TY=puntos[n-1].y + (puntos[n].y - puntos[n-1].y)*C;
-    
-    Point p_nuevo(int(TX+0.5), int(TY+0.5));
-    baseline.push_back(p_nuevo);
-  }
-
-  // ponemos el punto final donde estaba el original
-  baseline.push_back(puntos[puntos.size()-1]);
-}
 //----------------------------------------------------------
-
-
 void pintaLinies(Mat & img, bool deBatABat,  vector <vector <cv::Point> >  lines,vector< map<int,int> > seg_lines){
   int MARGE=80;
   //pinta el poligon al voltant de les frases
@@ -664,8 +560,8 @@ void use (char * programName){
   //cerr << "             [-l #int line to be extracted (by default all)]" << endl;
   cerr << "             [-o #String ] outputImageFile] " << endl;
   cerr << "             [-d ] demo (by default false)]" << endl;
-  cerr << "             [-m #int ] (by default 4)] min num points per line" << endl;
-  cerr << "             [-t ] segment from the col 0 to numCols (by default no)"<< endl;
+  //  cerr << "             [-m #int ] (by default 4)] min num points per line" << endl;
+  cerr << "             [-t ] segment just the baseline (by default no)"<< endl;
   cerr << "             [-v #int ] level of verbosity (by default 0)]" << endl;
 
 }
@@ -674,8 +570,7 @@ void use (char * programName){
 int main(int argc,char** argv ) {
   string inFileName="",xmlFileName="",outputFileName="";
   int option;
-  //int line=-1; //means all lines must be extracted
-  bool deBatABat=false;
+  bool deBatABat=true;
 
   while ((option=getopt(argc,argv,"i:x:dm:o:tv:"))!=-1)
     switch (option)  {
@@ -692,11 +587,11 @@ int main(int argc,char** argv ) {
       demo=true;
       break;
     case 't':
-      deBatABat=true;
+      deBatABat=false;
       break;
-    case 'm':
-      MIN_NUM_POINTS_LINE = atoi(optarg);
-      break;
+    // case 'm':
+    //   MIN_NUM_POINTS_LINE = atoi(optarg);
+    //   break;
     case 'v':
       verbosity=atoi(optarg);
       break;
@@ -720,75 +615,108 @@ int main(int argc,char** argv ) {
     return (-1);
   }
 
+ //li llevem la extensio al nom de fitxer d'entrada
+  size_t found = inFileName.find_last_of(".");
+  inFileName.erase(found,-1);
+
+  
   pugi::xml_document page;
   pugi::xml_parse_result result = page.load_file(xmlFileName.c_str());
   if (!result){
     cerr << "ERROR: file: " << xmlFileName << " could not be opened" << endl;
     exit(-1);
   }
+ 
+ //llevem el skew de la pagina
+ slopeClass desquewer(img);
+ desquewer.deslope();
+ 
+ double angleSlope=desquewer.getSlopeAngle();
+ 
+ Mat rot_mat = getRotationMatrix2D(Point2f(img.cols/2.0, img.rows/2.0), -angleSlope, 1.0);
+ Mat img_rotated;
+ img_rotated.create(img.rows,img.cols, CV_8UC(255));
+ 
+ warpAffine(img, img_rotated, rot_mat,img.size(), cv::INTER_CUBIC, cv::BORDER_CONSTANT, Scalar(255,255,255));
+ 
 
- vector <vector <cv::Point> >  lines= getBaselines(page);
-  if (lines.size()<=0){
-    cerr << "Warning: file "<< xmlFileName << " do not contains lines "<< endl;
-    exit(-1);
-  }
+ vector< vector<Point> >segmentacio(0);
+ vector <cv::Point>  region;
+ vector <vector <cv::Point> >  lines;
+ int cont_lin=0, cont_reg=0;
+ for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
 
-  //llevem el skew de la pagina
-  slopeClass desquewer(img);
-  desquewer.deslope();
-  
-  double angleSlope=desquewer.getSlopeAngle();
-  desquewer.rotar(-angleSlope);
-  Mat img_rotated=desquewer.getRotada();
-  
-  for (int l = 0; l < lines.size(); l++) { 
-    //ordenem els punts d'esquerre a dreta
-    std::sort(lines[l].begin(), lines[l].end(), sort_points_func);
-  }  
+   region.clear();
+   getRegionCoords(text_region, region);
+   
+   lines.clear();
+   getBaselinesFromRegion(text_region, lines);
+   
+   if (verbosity > 0)
+     cout << "Region " << cont_reg << " Number of lines " << lines.size() << endl;
+   
+   if (lines.size()==0) continue; // si una regió no té linies...
 
-  //rotem els punts
-  for (int l = 0; l < lines.size(); l++) 
-    for (int p = 0; p < lines[l].size(); p++) 
-      lines[l][p]=rotatePoint(lines[l][p], -angleSlope, img);
+   //ordenem els punts d'esquerre a dreta
+   for (uint l = 0; l < lines.size(); l++) {       
+      std::sort(lines[l].begin(), lines[l].end(), sort_points_func);
+    }  
 
-  //ordenem les linies
-  std::sort(lines.begin(), lines.end(), sort_lines_func);
+   //rotem els punts
+   for (int l = 0; l < lines.size(); l++) 
+     for (int p = 0; p < lines[l].size(); p++) 
+       lines[l][p]=rotatePoint(lines[l][p], -angleSlope, img);
 
-  //fussionem  linies base  ARA NO CAL PERQUE PARTIM DE LINIS BASE
-  fussionLines(lines, img_rotated);
+   //ordenem les linies
+   std::sort(lines.begin(), lines.end(), sort_lines_func);
 
-  if (verbosity > 0)
-    cout << "Number of lines " << lines.size() << endl;
-
+   //fussionem  linies base
+   //fussionLines(lines, img_rotated);
+   
+   int minX=img_rotated.cols-1;
+   int maxX=0;
+   int minY=img_rotated.rows-1;
+   int maxY=0;
+   
+   for (uint p = 0; p < region.size(); p++) {
+     region[p]=rotatePoint(region[p], -angleSlope, img_rotated);
+     
+     if (minX > region[p].x)
+       minX = region[p].x;
+     if (maxX <  region[p].x)
+       maxX = region[p].x;
+     if (minY > region[p].y)
+       minY = region[p].y;
+     if (maxY <  region[p].y )
+       maxY = region[p].y;
+   }
+   if (minX < 0 ) minX = 0;
+   if (minY < 0 ) minY = 0;
+   if (maxX > img.cols ) maxX = img.cols-1;
+   if (maxY > img.rows ) maxY = img.rows-1;
+   
   
  //afegim una linia artificial baix de tot per a poder tindre vora en la segmentacio
   vector<Point> ultimaLinia;
-  ultimaLinia.push_back(Point(img.cols/4, img.rows-1));
-  ultimaLinia.push_back(Point(img.cols/1.5, img.rows-1));
+  ultimaLinia.push_back(Point(minX, maxY));
+  ultimaLinia.push_back(Point(maxX, maxY));
   lines.push_back(ultimaLinia);
  
-  vector< vector<Point> >segmentacio(0);
+  
+  // obtenim la segmentacio
+  cv::Rect rect(Point(minX,minY),Point(maxX,maxY));
+  segmentacio.clear();
   for (int l = 0; l < lines.size()-1; l++) {      
     if (verbosity > 1)
       cout << endl<< "processing line "<< l+1<< endl;
     
-    getLineImage(lines, img_rotated, segmentacio, l);
-    //if (!getLineImage(lines, img_rotated, segmentacio, l))
-    //  cerr << "WARNING: Crossed lines !!! " <<l << " and " << l+1<< endl;
+    getLineImage(lines, img_rotated, segmentacio, l, rect);
   }
-
-
-  //de-rotem els punts
-  // for (int l = 0; l < lines.size(); l++) 
-  //   for (int p = 0; p < lines[l].size(); p++) 
-  //     lines[l][p]=rotatePoint(lines[l][p], angleSlope,img);
-
 
   //afegim una linia inicial damunt de la primera i igual a ella
   vector <cv::Point> linia_zero;
-  linia_zero.push_back(Point(segmentacio[0][0].x,0));
-  linia_zero.push_back(Point(segmentacio[0][ segmentacio[0].size()-1].x, 0));
-  
+  linia_zero.push_back(Point(minX,minY));
+  linia_zero.push_back(Point(maxX,minY));
   segmentacio.insert(segmentacio.begin(), linia_zero);
   
   vector< map<int,int> > seg_lines;
@@ -796,25 +724,21 @@ int main(int argc,char** argv ) {
   //LES X'S ES DESPLACEN AL ROTAR
   for (int l = 0; l < segmentacio.size(); l++){ 
     map<int,int> seg;
-    for (int p = 0; p < segmentacio[l].size(); p++) {
-      //Point punt(rotatePoint(segmentacio[l][p], angleSlope,img));
-      //seg[punt.x]=punt.y;
-      seg[segmentacio[l][p].x] = segmentacio[l][p].y;
-     
-    }
+    for (int p = 0; p < segmentacio[l].size(); p++) 
+      seg[segmentacio[l][p].x] = segmentacio[l][p].y;  
     
-    // Point primer=rotatePoint(segmentacio[l][0], angleSlope,img);
+    
     Point primer(segmentacio[l][0]);
     if (primer.x > 0){
       int x_ini=primer.x - 1;
-      for (int x = x_ini; x >=0 ; x--)  
+      //for (int x = x_ini; x >=0 ; x--)
+      for (int x = x_ini; x >=minX ; x--)
         seg[x]=primer.y;
     }
 
-    //Point ultim=rotatePoint(segmentacio[l][segmentacio[l].size()-1], angleSlope, img);
     Point ultim(segmentacio[l][segmentacio[l].size()-1]);
     if (ultim.x < img.cols - 1){
-      for (int x = ultim.x+1; x < img.cols; x++)
+      for (int x = ultim.x+1; x < maxX; x++)
 	seg[x]=ultim.y;
     }
     seg_lines.push_back(seg);   
@@ -822,14 +746,11 @@ int main(int argc,char** argv ) {
   
   //al rotar es creen discontinuitats en les x
   for (int l = 0; l < seg_lines.size(); l++)
-    for (int x = 1; x < img.cols; ++x) {
+    for (int x = minX+1; x < maxX; x++) {
       if(seg_lines[l].find(x) == seg_lines[l].end())
 	seg_lines[l][x]=seg_lines[l][x-1];
     }
   
-  //li llevem la extensio al nom de fitx d'entrada
-  size_t found = inFileName.find_last_of(".");
-  inFileName.erase(found,-1);
 
   if (demo){
     pintaLinies(img_rotated,deBatABat, lines, seg_lines);
@@ -842,45 +763,40 @@ int main(int argc,char** argv ) {
     imwrite(demoFileName,img_rotated);
     
   } else {
-    //li llevem la extensio al nom de fitx d'entrada
 
     for (uint seg = 0; seg < segmentacio.size()-1; seg++) {
 
-      int xini=0;
-      int xfi=img_rotated.cols-1;
+      int xini=rect.tl().x;
+      int xfi=rect.br().x;
 
       if (!deBatABat){
-        //mana la linia base de baix 
-        xini=lines[seg+1][0].x;
-        if (xini < 0) xini=0;
-        xfi=lines[seg+1][lines[seg+1].size()-1].x ;
-        if (xfi > img_rotated.cols) xfi=img_rotated.cols-1;
+	xini=lines[seg][0].x;
+	if (xini < 0) xini=0;
+	xfi=lines[seg][lines[seg].size()-1].x ;
+	if (xfi > img_rotated.cols) xfi=img_rotated.cols-1;
       }
 
       int y_min= img_rotated.rows;
       int y_max = 0;
 
-     
-		  
-      for (int x = xini; x < xfi && x< segmentacio[seg+1].size(); x++) {
+     		  
+      for (int x = xini; x < xfi; x++){
 	 if (y_min > seg_lines[seg][x]) y_min = seg_lines[seg][x];
 	 if (y_max < seg_lines[seg+1][x]) y_max = seg_lines[seg+1][x];
       } 
 
       Mat img_lin(y_max-y_min+1, xfi-xini,  CV_8UC1, Scalar(255));
       
-      for (int x = xini; x < xfi && x< seg_lines[seg+1].size(); x++) {
+      for (int x = xini; x < xfi; x++)
 	if ( seg_lines[seg].find(x) != seg_lines[seg].end())
-	  for (int y = seg_lines[seg][x]; y < seg_lines[seg+1][x]; y++) {
-	    if ( y < img_rotated.rows){
-	      img_lin.at<uchar>(y-y_min, x-xini) = img_rotated.at<uchar>(y,x);
-	    }
-	  }
-      }
+	  for (int y = seg_lines[seg][x]; y < seg_lines[seg+1][x]; y++) 
+	    if ( y < img_rotated.rows)
+	      img_lin.at<uchar>(y-y_min, x-xini) = img_rotated.at<uchar>(y,x);	          
+      
 
 
       std::stringstream num_linea_str;
-      num_linea_str << seg;
+      num_linea_str << cont_lin++;
       outputFileName=inFileName+"_"+num_linea_str.str()+".jpg";
      
       imwrite(outputFileName,img_lin);
@@ -888,6 +804,7 @@ int main(int argc,char** argv ) {
     }
 
   }
-  
+  cont_reg++;
+ }
  
 }

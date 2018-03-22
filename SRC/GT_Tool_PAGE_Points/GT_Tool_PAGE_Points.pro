@@ -7,7 +7,7 @@ TARGET =
 DEPENDPATH += .
 INCLUDEPATH += .
 
-"QT+=opengl"
+QT+=opengl
 
 # Input
 HEADERS += aboutwindow.h \

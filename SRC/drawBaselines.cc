@@ -28,6 +28,7 @@
 
 #include <opencv2/opencv.hpp>
 #include "pugixml.hpp"
+#include "libXmlPAGE.h"
 
 using namespace cv;
 using namespace std;
@@ -59,88 +60,6 @@ void drawPolyLines(Mat & img,vector< vector<Point> > & lines, int n_lin=-1 ){
     }
   }
 
-}
-
-//----------------------------------------------------------
-vector <vector <cv::Point > > getBaselines(pugi::xml_document & page){
-  vector< vector <cv::Point > > baselines;
-  vector<cv::Point> tmp_baseline;
-
-  for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
-    
-    for (pugi::xml_node line_region = text_region.child("TextLine"); line_region; line_region = line_region.next_sibling("TextLine")){   
-      tmp_baseline.clear();
-      std::vector<std::string> string_values;
-      string point_string = line_region.child("Baseline").attribute("points").value();
-      
-      if(point_string != ""){
-
-	istringstream point_stream(point_string);
-	std::string string_point;
-	while (point_stream >> string_point){
-	  int cont_comas=0;
-	  for (int i = 0; i < string_point.size(); i++) {
-	    if (string_point[i] == ','){
-	      string_point[i] = ' ';
-	      cont_comas++;
-	    }
-	  }
-
-	  if (cont_comas != 1){
-	    cerr << "drawBaselines ERROR: regions cords bad format"<< endl;
-	    exit(-1);
-	  }	
-
-	  int x,y;
-	  istringstream(string_point) >> x >> y;;
-	  tmp_baseline.push_back(cv::Point(x,y));
-	}
-	baselines.push_back(tmp_baseline);	  
-      }      
-    }
-  }
-  return baselines;
-}
-
-//----------------------------------------------------------
-vector <vector <cv::Point > > getRegions(pugi::xml_document & page){
-  vector< vector <cv::Point > > regions;
-  vector<cv::Point> tmp_region;
-
-  int n_reg=0;
-  for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
-    
-    string point_string = text_region.child("Coords").attribute("points").value();
-    
-    if(point_string != ""){
-
-      tmp_region.clear();
-      istringstream point_stream(point_string);
-      string string_point;
-      while (point_stream >> string_point){
-	int cont_comas=0;
-	for (uint i = 0; i < string_point.size(); i++) {
-	  if (string_point[i] == ','){
-	    string_point[i] = ' ';
-	    cont_comas++;
-	  }
-	}
-
-	if (cont_comas != 1){
-	  cerr << "drawBaselines ERROR: regions cords bad format"<< endl;
-	  exit(-1);
-	}
-
-        int x,y;
-        istringstream(string_point) >> x >> y;;
-	tmp_region.push_back(cv::Point(x,y));
-	
-      }
-      n_reg++;
-      regions.push_back(tmp_region);
-    }
-  }
-  return regions;
 }
 
 

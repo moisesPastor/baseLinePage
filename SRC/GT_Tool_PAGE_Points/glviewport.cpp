@@ -591,6 +591,7 @@ void GLViewport::getPointClasses(){
   if (!minimaPoints) return; //no points loaded
   
   // completar baselines
+  const int MARGE = 5;
   vector< vector< Point > >  baseLines_completesX(0);
   vector<Point> line(0);
   for (int reg=  0; reg < regions->size(); reg++){  
@@ -598,20 +599,40 @@ void GLViewport::getPointClasses(){
      
       // Baselines
       line.clear();
-      for(int p=0; p< (*regions)[reg].lines[lin].baseline.size() - 1; p++){       
+
+      //marge inicial
+      for (int x =  (*regions)[reg].lines[lin].baseline[0].x - MARGE; x <=  (*regions)[reg].lines[lin].baseline[0].x; x++) {
+	if (x >= 0 && x <img_width ){
+	  line.push_back(Point(x,(*regions)[reg].lines[lin].baseline[0].y));
+	}
+      }
+
+      for(int p=0; p< (*regions)[reg].lines[lin].baseline.size() - 1; p++){    
 	for (int x =  (*regions)[reg].lines[lin].baseline[p].x; x <=  (*regions)[reg].lines[lin].baseline[p+1].x; x++) {
-	  
-	  int y=calc_y((*regions)[reg].lines[lin].baseline[p], (*regions)[reg].lines[lin].baseline[p+1], x);
-	  line.push_back(Point(x,y));
+	  if (x >= 0 && x <img_width ){
+	    int y=calc_y((*regions)[reg].lines[lin].baseline[p], (*regions)[reg].lines[lin].baseline[p+1], x);
+	    line.push_back(Point(x,y));
+	  }
 	}       
       }
-    
+
+      for (int x =  (*regions)[reg].lines[lin].baseline[(*regions)[reg].lines[lin].baseline.size()-1].x; x <=  (*regions)[reg].lines[lin].baseline[(*regions)[reg].lines[lin].baseline.size()-1].x + MARGE ; x++) {
+	if (x >= 0 && x <img_width ){	  
+	    line.push_back(Point(x,(*regions)[reg].lines[lin].baseline[(*regions)[reg].lines[lin].baseline.size()-1].y));
+	}
+      }
       if (line.size()>0)
 	baseLines_completesX.push_back(line);
+
+      // (*regions)[reg].lines[lin].baseline.clear();
+      // for (int i = 0; i < line.size(); i++) {
+      // 	(*regions)[reg].lines[lin].baseline.push_back(line[i]);
+      // }
     }
   }
 
   // classificar
+
   for (int p = 0; p < minimaPoints->size(); p++) {
     int classDOWN=-1, classUP=-1;
     float minimaDistUP=INT_MAX, minimaDistDOWN=INT_MAX;
@@ -619,11 +640,11 @@ void GLViewport::getPointClasses(){
     //Linies completades per a tot el rang de x   
     for (uint l = 0; l < baseLines_completesX.size(); l++) {
       int x= (*minimaPoints)[p].x;
-      int pLines=x - baseLines_completesX[l][0].x;  //distancia on es troba en la polylinia l
+      int pLines=x - baseLines_completesX[l][0].x;  //distancia relativa on es troba en la polylinia l 
    
-      if (x >=  baseLines_completesX[l][0].x && x <=  baseLines_completesX[l][baseLines_completesX[l].size()-1].x){ //esta dins del domini de la x de la polylinia?
+      if (x >=  baseLines_completesX[l][0].x && x <=  baseLines_completesX[l][baseLines_completesX[l].size()-1].x ){ //esta dins del domini de la x de la polylinia?
 
-        float dist= (*minimaPoints)[p].y-baseLines_completesX[l][pLines].y;
+        float dist = (*minimaPoints)[p].y - baseLines_completesX[l][pLines].y;
         if (dist<=0 && -dist <= dist_maxima_UP_toBaseline){
           classUP=l;
           minimaDistUP=-dist;

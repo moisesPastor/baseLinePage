@@ -29,7 +29,7 @@ using namespace std;
 using namespace cv;
 
 int NUMCOLS_CONTEXT=130;
-int NUMROWS_CONTEXT=50; 
+int NUMROWS_CONTEXT=80; 
 
 const int FINALCOLS=25;
 const int FINALROWS=15;
@@ -197,7 +197,7 @@ void fishEye(Mat & img, Mat & dst, float K_V, float K_H){
     }
   }
 }
-
+//----------------------------------------------------------
 Scalar frequentColor(Mat & img, int centerX,  int centerY){
   int * hist = new int[255];
   for (int i = 0; i < 255; i++) {
@@ -236,71 +236,8 @@ void copyContext(Mat & img, Mat & img_context, int centerX, int centerY){
     }
   }
 }
-//----------------------------------------------------------
-void getFeatures(Mat & img, labeledpoint point, int rows, int cols){
-  cout << point.label<<",";
-  cout << point.x/(float)cols<< ","<< point.y/(float)rows<< ",";
-  
-  int cont=0;
-  int maxCont=img.rows * img.cols;
 
-  for(int r=0; r < img.rows; r++)
-    for(int c=0; c<img.cols ;c++){
-      cout << float(img.at<uchar>(r,c))/255;
-     if (cont < maxCont-1)
-      	cout << ",";
-      cont++;
-    }
-  cout << endl;
-}
-//----------------------------------------------------------
-void getFeatures_moments(Mat & img, labeledpoint point, int rows, int cols){
-  cout << point.label<<",";
-  cout << point.x/(float)cols<< ","<< point.y/(float)rows<<",";
-  
-  Mat canny_output;
-  vector<vector<Point> > contours;
-  vector<Vec4i> hierarchy;
- 
-  /// Detect edges using canny
-  //Canny(img, canny_output, 50, 150, 3 );
-  /// Find contours
-  //findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
- 
-  /// Get the moments
-  //vector<Moments> mu(contours.size() );
-  Moments mom =  moments( img, false);
-  double hu[7];
-  cv::HuMoments(mom, hu);
-  // for (int i = 0; i < 6; i++) {
-  //   cout << hu[i] <<",";
-  // }
-  // cout <<  hu[6] <<endl;
 
-  
-    // double lambda = sqrt((mom.mu20 -mom.mu02)* (mom.mu20 -mom.mu02) + 4*mom.mu11 *mom.mu11);
-    // double ang=atan((mom.mu02-mom.mu20 - 2* mom.mu11 + lambda)/(mom.mu02 -mom.mu20 + 2* mom.mu11 -lambda));
-
-    // double excentricitat = sqrt ((mom.mu20 + mom.mu02 + lambda)/(mom.mu20 + mom.mu02 -lambda));
-  
-  
-  cout << mom.mu20 << ","; 
-  cout << mom.mu11 << ",";
-  cout << mom.mu02 << ",";
-  
-  cout << mom.mu30 << ",";
-  cout << mom.mu21 << ",";
-  cout << mom.mu12 << ",";
-  cout << mom.mu03 << ",";
-  
-  cout << mom.nu20 << ",";//Su valor aumentará cuanto mayor sea la componente HORIZONTAL de una figura.
-  //  //cout << mom.nu11 << ","; // indica el cuadrante en que se encuentra, si esta centrada -> 0
-  cout << mom.nu02 << ",";//Su valor aumentará cuanto mayor sea la componente VERTICAL de una figura.
-  // // cout << ang << ",";
-  // // cout << excentricitat << ",";
-  // //cout <<  hu[1] <<",";
-   cout <<  hu[6] <<endl; //
-}
 //----------------------------------------------------------
 void usage (char * programName){
  
@@ -317,10 +254,7 @@ void usage (char * programName){
     ;
   //cerr << "             [-l] labeledPoints file (by default not labeled)" << endl;
   //cerr << "             [-R] raw image, no fish eye applied (by default false)" << endl;
-  cerr << "             [-x #int] coordinate x of center (demo)" << endl;
-  cerr << "             [-y #int] coordinate y of center (demo)" << endl;
-
-  cerr << "             [-o image outputfile] (demo) (by default stdout, if not -p file)" << endl;
+    cerr << "             [-o image outputfile]" << endl;
   //cerr << "             [-v #int verbosity] " << endl;
 }
 
@@ -328,12 +262,6 @@ int main (int argc, char** argv)   {
 
   string inFileName,outFileName,pointsFileName;
   int option;
-  float K=001;
-  float K_V=0, K_H=0;
-  float centerX=-1,  centerY=-1;
-  //bool applyFishEye=true;
-  bool demo=true;
-  bool moments=true;
 
   if(argc == 1){
     usage(argv[0]);
@@ -348,10 +276,6 @@ int main (int argc, char** argv)   {
       break;
     case 'p':
       pointsFileName=optarg;
-      demo=false;
-      break;
-    case 'm':
-      moments=false;
       break;
     case 'r':
       NUMROWS_CONTEXT=atoi(optarg);
@@ -359,40 +283,16 @@ int main (int argc, char** argv)   {
     case 'c':
       NUMCOLS_CONTEXT=atoi(optarg);
       break;
-    // case 'k':
-    //   K_V=atof(optarg);
-    //   K_H=K_V;
-    //   break;
-      // case 'R':
-      //   applyFishEye=false;
-      //   break;
-    // case 'H':
-    //   K_H=atof(optarg);
-    //   break;
-    // case 'V':
-    //   K_V=atof(optarg);
-    //   break;
-    case 'x':
-      centerX = atoi(optarg);
-      break;
-    case 'y':
-      centerY = atoi(optarg);
-      break;
     case 'o':
       outFileName=optarg;
-      demo=true;
       break;
     case 'h':
     default:
       usage(argv[0]);
       return 1;
     }
-  
-  if(demo && (centerX<0 || centerY<0)){
-    cerr << "Error: center point (x,y) needed" << endl;
-    return -1;
-  }
 
+  
   Mat img=imread(inFileName,0);
   if (!img.data) {
     cerr << "ERROR reading the image file "<< inFileName<< endl;
@@ -400,7 +300,6 @@ int main (int argc, char** argv)   {
   }
 
 
-  if (!demo){
 
     ifstream pfd;
     pfd.open(pointsFileName.c_str());
@@ -415,9 +314,12 @@ int main (int argc, char** argv)   {
     
 
     if (npoints == 0){
-      cerr << "fisheye. WARNING: no points to be processed" << endl;
+      cerr << "WARNING: no points to be processed" << endl;
       return -1;
     } 
+
+    size_t found = outFileName.find_last_of(".");
+    outFileName.erase(found,-1);
 
     for(int p=0;p<npoints;p++){
       Scalar baseColor = Scalar(255);
@@ -428,51 +330,16 @@ int main (int argc, char** argv)   {
       
       Mat img_context(Size(NUMCOLS_CONTEXT ,NUMROWS_CONTEXT),img.type(), baseColor);      
       copyContext(img, img_context, points[p].x, points[p].y);
+      //resize(img_context,img_context,Size(FINALCOLS,FINALROWS));
+      normalize(img_context, img_context, 0, 255, NORM_MINMAX, CV_8UC1);
 
-      //Mat img_fish(img_context.size(), img.type(), Scalar(255));
-
-      //if (applyFishEye)	
-      //fishEye(img_context,img_fish,K_V,K_H);
-	// else 
-	//img_fish=img_context;
-
-	//submostrejar
-     
-
-      
-      if (moments)
-	getFeatures_moments(img_context, points[p], img.rows, img.cols);
-      else{
-	 resize(img_context,img_context,Size(FINALCOLS,FINALROWS));
-	 normalize(img_context, img_context, 0, 255, NORM_MINMAX, CV_8UC1);
-	 getFeatures(img_context, points[p], img.rows, img.cols);
-      }
-    }
-  }else{
-    Scalar baseColor = Scalar(255);
-    if (centerX - NUMCOLS_CONTEXT < 0 || centerX + NUMCOLS_CONTEXT >= img.cols \
-	|| centerY - NUMROWS_CONTEXT < 0 || centerY + NUMROWS_CONTEXT >= img.rows){
-      baseColor = frequentColor(img, centerX,  centerY);
-    }
-    Mat img_context(Size(NUMCOLS_CONTEXT,NUMROWS_CONTEXT),img.type(), baseColor);
-     copyContext(img, img_context, centerX,  centerY);
-
-    //aplicar ull de peix
-    //Mat img_fish(img_context.size(), img.type(), Scalar(255));
-
-    //if (applyFishEye)
-    //fishEye(img_context,img_fish,K_V,K_H);
-      //else 
-      //img_fish=img_context;
-
-    //submostrejar
-    //resize(img_fish,img_fish,Size(FINALCOLS,FINALROWS));
-
-     //resize(img_context,img_context,Size(FINALCOLS,FINALROWS), 0, 0, INTER_CUBIC);
-    
-    //escriure a fitxer
-    //imwrite(outFileName.c_str(),img_fish);
-    imwrite(outFileName.c_str(),img_context);
-    
-  }
+      String tmpOutFileName=outFileName;
+      std::stringstream num_punt;
+      num_punt  << p;
+      tmpOutFileName+="_"+num_punt.str();
+      tmpOutFileName+=".jpg";
+      //cout << tmpOutFileName << endl;
+      imwrite(tmpOutFileName.c_str(),img_context);
+    }    
 }
+

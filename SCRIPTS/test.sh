@@ -30,7 +30,7 @@ source $4
    echo ${DOUT}_$NAME_ERT
 
    cp -l $DOUT/*.jpg  ${DOUT}_$NAME_ERT
-   cp -l $DOUT/*.xml ${DOUT}_$NAME_ERT
+   cp  $DOUT/*.xml ${DOUT}_$NAME_ERT
 
   echo "getting points"
   for file in `cat $1`; do

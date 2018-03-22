@@ -19,8 +19,9 @@ public:
   int window;
   int kernel_size;
   int pTallMin;
-  static const int max_thresh = 400;
-  LocalMinima(String inFilename,int window,int pTallMin, int kernel_size);
+  bool verbosity;
+  //static const int max_thresh = 400;
+  LocalMinima(String inFilename,int window,int pTallMin, int kernel_size, bool verbosity);
   void preprocessing(Mat & img);
   void getMinimaPoints();
   void getMinimaPoints(Mat & aux);
@@ -101,7 +102,7 @@ int main( int argc, char** argv ) {
       exit(1);
     }
   
-  LocalMinima loc(inFileName, window, pTallMin, kernel_size);
+  LocalMinima loc(inFileName, window, pTallMin, kernel_size, verbosity);
   
   if (graphicalMode){
            
@@ -151,10 +152,11 @@ int main( int argc, char** argv ) {
 
 
 //-------------------------------------------------------------
-LocalMinima::LocalMinima(String inFileName,int window=10,int pTallMin=30, int kernel_size=5 ){
+LocalMinima::LocalMinima(String inFileName,int window=10,int pTallMin=30, int kernel_size=5, bool verbosity=false ){
   this->window = window;
   this->pTallMin=pTallMin;
   this->kernel_size = kernel_size;
+  this->verbosity = verbosity;
   
   img=imread( inFileName.c_str(), CV_LOAD_IMAGE_GRAYSCALE );
   if (!img.data) {
@@ -209,6 +211,23 @@ void LocalMinima::getMinimaPoints(Mat & img_aux){
       findMinInContours (contours[c]);      
 
 
+  if (verbosity){   
+    Mat image(img_aux.size(),CV_8U,cv::Scalar(255));
+    for (unsigned int c=0; c < contours.size(); c++){
+      vector<Point> * purged = purge(contours[c]);
+      for (unsigned int c=0; c < purged->size(); c++){      
+    	image.at<uchar>((*purged)[c].y, (*purged)[c].x)=0;	
+      }
+    }
+    
+    // for (unsigned int c=0; c < selected_min.size(); c++){      
+    //         image.at<uchar>(selected_min[c].y, selected_min[c].x)=0;	    
+    // } 
+  
+  
+    imwrite("contours.jpg", image);
+  }
+
 }
 //-----------------------------------------------------------
 void LocalMinima::findMinInContours (vector<Point> & points){
@@ -219,7 +238,7 @@ void LocalMinima::findMinInContours (vector<Point> & points){
   for ( int p=0; p<purged->size(); p++ ) {
     bool  min=true, context=false;
     
-    for (int j = 0; j < purged->size(); j++) 
+     for (int j = 0; j < purged->size(); j++)
       if (abs((*purged)[j].x - (*purged)[p].x) <= window/2 && abs((*purged)[j].y - (*purged)[p].y) <= window){      
   	  context=true;	 
   	  if ((*purged)[j].y > (*purged)[p].y){
@@ -230,7 +249,7 @@ void LocalMinima::findMinInContours (vector<Point> & points){
       
     
     if (context && min) // && contPuntsDinsWin>=MinNumPuntsInWin)
-      if(exterior((*purged)[p], false))
+       if(exterior((*purged)[p], false))
   	 selected_min.push_back((*purged)[p]);	
       
   }
@@ -324,11 +343,11 @@ vector<Point> * LocalMinima::purge(vector<Point> &points){
 //-----------------------------------------------------------
 bool LocalMinima::exterior(Point p, bool isUp){
   float cont_down=0,cont_up=0;
-  int y=p.y;
-  for (y=p.y; y<img.rows && y<p.y+5; y++)
+
+  for (int y=p.y; y<img.rows && y<p.y+5; y++)
     cont_down+= img.at<uchar>(y,p.x);
 
-  for (y=p.y; y>0 && y>p.y-5; y--)
+  for (int y=p.y; y>0 && y>p.y-5; y--)
     cont_up+= img.at<uchar>(y,p.x);
 
   
