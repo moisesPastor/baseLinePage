@@ -30,16 +30,19 @@
 
 #include "pugixml.hpp"
 #include "slopeClass.h"
+#include "libXmlPAGE.h"
+#include "libPoints.h"
 
 using namespace cv;
 using namespace std;
 
-const  int NOISE=-1;
+const int NOISE=-1;
 const int PENALITZACIO_Y=12;
 
 const int numColors=28;
 Scalar colors[numColors]={Scalar(255, 23, 0), Scalar(42, 0, 255), Scalar(255, 96, 0), Scalar(155, 0, 255), Scalar(17, 0, 255), Scalar(255, 0, 234), Scalar(0, 41, 255), Scalar(0, 255, 41), Scalar(143, 0, 255),Scalar(30, 0, 255), Scalar(209, 0, 255),  Scalar(255, 0, 0), Scalar(0, 48, 255),  Scalar(255, 0, 108), Scalar(255, 0, 228), Scalar(114, 0, 255), Scalar(255, 156, 0), Scalar(255, 0, 252), Scalar(255, 0, 89), Scalar(0, 0,255), Scalar(222, 0, 255), Scalar(255, 0, 11), Scalar(209, 255, 0), Scalar(0, 83, 255), Scalar(255, 0, 0), Scalar(0, 131, 255), Scalar(252, 0, 255), Scalar(255, 0, 143)};
 
+//---------------------------------------------------------------------
 struct  k{
   bool operator() (cv::Point pt1, cv::Point pt2) { 
     if(pt1.x < pt2.x) return true; 
@@ -48,18 +51,17 @@ struct  k{
 } sort_points_func;
 
 struct k1{
-  bool operator() (vector< Point > v1, vector < Point > v2){
+  bool operator() (std::vector< cv::Point > v1, std::vector < cv::Point > v2){
     double sum_y_v1=0;
-    for (uint i = 0; i < v1.size(); ++i){
+    for (unsigned int i = 0; i < v1.size(); ++i){
       sum_y_v1+=v1[i].y;
     }
 
     double sum_y_v2=0;
-    for (uint i = 0; i < v2.size(); ++i){
+    for (unsigned int i = 0; i < v2.size(); ++i){
       sum_y_v2+=v2[i].y;
     }
 
-    
     double mean_y_v1=sum_y_v1/v1.size();
     double mean_y_v2=sum_y_v2/v2.size();
     if (mean_y_v1 <= mean_y_v2) return true;
@@ -68,7 +70,7 @@ struct k1{
 } sort_lines_func;
 
 struct k2{
-  bool operator() (vector< Point > v1, vector < Point > v2){
+  bool operator() (std::vector< cv::Point > v1, std::vector < cv::Point > v2){
     if (v1[v1.size()-1].x < v2[v2.size()-1].x)
       return true;
     else
@@ -76,7 +78,7 @@ struct k2{
   }
 }sort_linesX_func;
 
-//----------------------------------------------------------
+
 //----------------------------------------------------------
 class DbScan {
   const static int NOT_VISITED=-99;
@@ -216,50 +218,13 @@ public:
     delete [] classPoints;
     return lines;
   }
-}; //end of the DbScan class
-//----------------------------------------------------------
-//----------------------------------------------------------
-
-//---------------------------------------------------------------------
-Point rotatePoint(Point p,double angle,Mat & img){
-  if (angle == 0) return p;
-  
-  angle=angle*M_PI/180.0;
-
-  int x = p.x - img.cols/2;
-  int y = -p.y + img.rows/2;
-
-  int x1 = x*cos(angle) - y*sin(angle);
-  int y1 = x*sin(angle) + y*cos(angle);
-
-  x =  x1 + img.cols/2;
-  y = -y1 + img.rows/2;
-
-  return Point(x,y);
-}
-
-//---------------------------------------------------------------------
-Point rotatePoint(Point p,double angle, int rows, int cols){
-  if (angle == 0) return p;
-  
-  angle=angle*M_PI/180.0;
-
-  int x = p.x - cols/2;
-  int y = -p.y + rows/2;
-
-  int x1 = x*cos(angle) - y*sin(angle);
-  int y1 = x*sin(angle) + y*cos(angle);
-
-  x =  x1 + cols/2;
-  y = -y1 + rows/2;
-
-  return Point(x,y);
-}
-
+};
 
 //----------------------------------------------------------
-void plotPoints(DbScan & dbscan, Mat grouped){
-    
+//-----------end of the DbScan class------------------------
+//----------------------------------------------------------
+
+void plotPoints(DbScan & dbscan, Mat grouped){    
 
   for(unsigned int i=0;i<dbscan.data.size();i++) {
     
@@ -400,223 +365,6 @@ void plotPolyLines(Mat grouped, DbScan & dbscan){
   }
   delete [] pointsClasses;
 }
-
-//----------------------------------------------------------
-vector <vector <cv::Point > > getRegions(pugi::xml_document & page){
-  vector< vector <cv::Point > > regions;
-  vector<cv::Point> tmp_region;
-
-  int n_reg=0;
-  for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
-    
-    string point_string = text_region.child("Coords").attribute("points").value();
-    
-    if(point_string != ""){
-
-      tmp_region.clear();
-      istringstream point_stream(point_string);
-      string string_point;
-      while (point_stream >> string_point){
-	int cont_comas=0;
-	for (uint i = 0; i < string_point.size(); i++) {
-	  if (string_point[i] == ','){
-	    string_point[i] = ' ';
-	    cont_comas++;
-	  }
-	}
-
-	if (cont_comas != 1){
-	  cerr << "mdbscan ERROR: regions cords bad format"<< endl;
-	  exit(-1);
-	}
-
-        int x,y;
-        istringstream(string_point) >> x >> y;;
-	tmp_region.push_back(cv::Point(x,y));
-	
-      }
-      n_reg++;
-      regions.push_back(tmp_region);
-    }
-  }
-  return regions;
-}
-
-//---------------------------------------------------------------------
-int getPointsFromFile(string pointsFileName,vector<Point> & points){
-
-  ifstream pointsFile;
-  pointsFile.open(pointsFileName.c_str());
-  if(!pointsFile){
-    cerr << "Error: File \""<< pointsFileName <<  "\" could not be open "<< endl;
-    exit(-1);
-  }
-
-  float x,y;
-  int clas;
- 
-  const int BUFFSIZE = 120;
-  char buff[BUFFSIZE];
-  stringstream line;
-  int c=0;
-  do{
-    line.str(""); // per a buidar line
-    pointsFile.getline( buff,  BUFFSIZE );
-    line << buff;
-    if (c++ > 100) { 
-      cerr << "ERROR: Point header file format wrong!!" << endl;
-      exit (-1);
-    }
-  }while ('#' == line.peek() || line.str().size() == 0);
-
-  int numPoints;
-  line >> numPoints;
-  int cont_points=0;
-  int x_min=INT_MAX;
-  int x_max=0;
-  while (cont_points < numPoints) {
-    c=0;
-    do{
-      line.str(""); // per a buidar line
-      line.clear();
-      pointsFile.getline( buff,  BUFFSIZE );
-      line << buff;
-      if (pointsFile.eof()){
-	cerr << "ERROR Not enought number of points "<< cont_points << " and it is say to be " << numPoints << endl;
-	exit(-1);
-      }
-      if (c++ > 100) { 
-	cerr << "ERROR: Point file format wrong!!" << endl;
-	exit (-1);
-      }
-    }while ('#' == line.peek() || line.str().size() == 0);
-
-    line >> x >> y >> clas;
-    if (clas == 2){ //baseline 
-      points.push_back(Point2f(x,y));
-
-      if (x > x_max) x_max=x;
-      if (x < x_min) x_min=x;
-    }
-    cont_points++;
-  }
-  
-  return (x_max - x_min);
-}
-
-
-//--------------------------------------------------------------------
-void normaliza_traza(vector<Point> & baseline, int NumPuntsNuevo=10){
-  vector<Point> puntos(baseline);
- 
- if (baseline.size()<=0) { 
-      cerr << "WARNING: baseline with "<< baseline.size()<< " points" << endl;
-      return;
-  }
-
-  baseline.clear();
-
-  // calculamos el vector de distancias desde el punto inicial a cualquier otro
-  int DistEntrePuntos;
-  double * D=new double[puntos.size()];
-  D[0]=0;
-  for (uint j = 1; j < puntos.size(); j++) {
-    int DX=(puntos[j].x - puntos[j-1].x);
-    int DY=(puntos[j].y - puntos[j-1].y);
-    D[j]=D[j-1]+sqrt((double)DX*DX+DY*DY);
-  }
-  
-  // si no se recibe, se distribuyen los puntos que ya hay equidistantemente
-  if (NumPuntsNuevo == 0){ 
-    NumPuntsNuevo=puntos.size();
-  }
-
-  DistEntrePuntos=D[puntos.size()-1]/(NumPuntsNuevo-1);
-  
-  // ponemos el punto inicial donde estaba el original
-   baseline.push_back(puntos[0]);
-  int n=1;
-    
-  for (int j = 1; j < NumPuntsNuevo-1; j++) {
-    while (!((D[n-1] <= j*DistEntrePuntos) && (j*DistEntrePuntos <= D[n]))) n++;
-    float C;
-    if (D[n-1]==D[n]) C=1;
-    else C=(j*DistEntrePuntos-D[n-1])/(D[n]-D[n-1]);
-    
-    float TX=puntos[n-1].x + (puntos[n].x - puntos[n-1].x)*C;
-    float TY=puntos[n-1].y + (puntos[n].y - puntos[n-1].y)*C;
-    
-    Point p_nuevo(int(TX+0.5), int(TY+0.5));
-    baseline.push_back(p_nuevo);
-  }
-
-  // ponemos el punto final donde estaba el original
-  baseline.push_back(puntos[puntos.size()-1]);
-}
-
-
-
-//--------------------------------------------------------------------
-void updateXml(pugi::xml_document & page,  vector< vector< vector<Point> > > & lines_finals, int numPointsPerLine=-1){
-
-  if (lines_finals.size() <= 0 ) return;
-
-  if (numPointsPerLine != -1)
-    for(uint r = 0; r <lines_finals.size(); r++)
-      for (uint l = 0; l < lines_finals[r].size(); l++)
-	if (lines_finals[r][l].size() > numPointsPerLine)
-	  normaliza_traza( lines_finals[r][l],numPointsPerLine );
-
-  
-  // if (page.child("PcGts").child("Page").child("TextRegion") == 0){ // no regions given
-  //   pugi::xml_node reg = page.child("PcGts").child("Page").append_child("TextRegion");
-  //   pugi::xml_attribute id_attr = reg.append_attribute("id");
-  //   id_attr.set_value("1");
-  //   pugi::xml_node reg_coords=reg.append_child("Coords");
-  //   pugi::xml_attribute reg_points_attr = reg_coords.append_attribute("points");
-  //   reg_points_attr.set_value("xx");
-  // } else {
-    for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
-      for (pugi::xml_node text_line = text_region.child("TextLine"); text_line;) {
-	pugi::xml_node next = text_line.next_sibling("TextLine");      //raro, pero no tocar
-	text_line.parent().remove_child(text_line);
-	text_line = next; //això mateix
-      }
-    }
-    //}
-  
-  int n_reg=0;
-  for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
-    
-    for (uint l = 0; l < lines_finals[n_reg].size(); l++) {
-      pugi::xml_node line = text_region.append_child("TextLine");
-      
-      pugi::xml_attribute id_attr = line.append_attribute("id");
-      stringstream ss;
-      ss << "l" << n_reg<<"_"<<l;
-      id_attr.set_value(ss.str().c_str());
-      
-      pugi::xml_node line_coords=line.append_child("Coords");
-      pugi::xml_attribute line_points_attr = line_coords.append_attribute("points");
-      line_points_attr.set_value("");
-
-      //BASE LINE
-      pugi::xml_node baseline = line.append_child("Baseline");
-      stringstream points_stream;
-      
-      for (uint p = 0; p < lines_finals[n_reg][l].size()-1 ; p++) {
-    	points_stream << lines_finals[n_reg][l][p].x << "," << lines_finals[n_reg][l][p].y<<" ";
-      }
-
-      points_stream << lines_finals[n_reg][l][lines_finals[n_reg][l].size()-1].x << "," << lines_finals[n_reg][l][lines_finals[n_reg][l].size()-1].y; //per a que no afegisca " " a la fi
-
-      pugi::xml_attribute points_attr = baseline.append_attribute("points");
-      points_attr.set_value(points_stream.str().c_str());         
-    }
-    n_reg++;
-  }
-}
-
 
 //---------------------------------------------------------------------
 void purgeLines(vector< vector<Point> > & lines, uint numMinPoints){
@@ -995,15 +743,16 @@ int main(int argc,char** argv ) {
   }
   
   vector <vector <cv::Point> >  regions= getRegions(page);
+
   vector< vector< vector<Point> > > rotated_lines;
   
   //si no hi han regions defindes
   if (regions.size() <= 0){
     vector<Point> r;
     r.push_back(Point(0,0));
-    r.push_back(Point(img.cols,0));
-    r.push_back(Point(img.cols,img.rows));
-    r.push_back(Point(0,img.rows));   
+    r.push_back(Point(img.cols-1,0));
+    r.push_back(Point(img.cols-1,img.rows-1));
+    r.push_back(Point(0,img.rows-1));   
    
     regions.push_back(r);
 
@@ -1014,7 +763,7 @@ int main(int argc,char** argv ) {
     pugi::xml_node reg_coords=reg.append_child("Coords");
     pugi::xml_attribute reg_points_attr = reg_coords.append_attribute("points");
     stringstream reg_coord;
-    reg_coord << "0,0 " << img.cols << ",0 " << img.cols << "," <<  img.rows << " 0," <<img.rows;
+    reg_coord << "0,0 " << img.cols-1 << ",0 " << img.cols-1 << "," <<  img.rows-1 << " 0," <<img.rows-1;
     reg_points_attr.set_value(reg_coord.str().c_str());
 
     

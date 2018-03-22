@@ -1,7 +1,18 @@
 all: lineExtractor
+INCLUDE=-I. -I../LIB
 OPEN_LIBS=-lopencv_imgproc -lopencv_core -lopencv_highgui -lpugixml
-lineExtractor: lineExtractor.cc  slopeClass.cc Graf.cc
-	g++ -o lineExtractor lineExtractor.cc Graf.cc slopeClass.cc -I. -O3 ${OPEN_LIBS} 
+PROG_LIBS=../LIB/libXmlPAGE.o ../LIB/libPoints.o
+
+
+lineExtractor: lineExtractor.cc  Graf.o slopeClass.o
+	make -C ../LIB
+	g++ -o lineExtractor lineExtractor.cc Graf.o slopeClass.o ${PROG_LIBS} ${INCLUDE}  ${OPEN_LIBS}  -O3  
+
+Graf.o: Graf.cc Graf.h
+	g++ -c Graf.cc  ${INCLUDE}  ${OPEN_LIBS}  -O3
+
+slopeClass.o: slopeClass.cc slopeClass.h
+	g++ -c slopeClass.cc  ${INCLUDE}  ${OPEN_LIBS}  -O3
 
 clean:
 	rm lineExtractor *.o
