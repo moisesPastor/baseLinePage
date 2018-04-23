@@ -10,7 +10,7 @@ fi
 #set -n : Read commands but do not execute them. This may be used to check a shell script for syntax errors.
 #set -e stop the script if an error occurs
 
-PATH=$PATH:../../BIN:.
+PATH=$PATH:${HOME}/baseLinePage/BIN:.
 DOUT=${2/\//}
 ERT=$3
 source $4
@@ -68,7 +68,7 @@ source $4
 
      paste -d " " ${NOM}.min ${NOM}.cmin > ${NOM}.qmin
 
-     mdbscan -p ${NOM}.qmin  -i ${NOM}.jpg -x ${NOM}.xml -d $DBSCAN_EPSILON_DIST -m $DBSCAN_MIN_POINTS_PER_LINE -a $DBSCAN_MAX_ANGLE_INTO_A_LINE -D $DBSCAN_DECREMENT_STEP -N $DBSCAN_FINAL_POINTS_PER_LINE $DBSCAN_STRAIT_BASELINES
+     mdbscan -p ${NOM}.qmin  -i ${NOM}.jpg -x ${NOM}.xml -d $DBSCAN_EPSILON_DIST -m $DBSCAN_MIN_POINTS_PER_LINE -a $DBSCAN_MAX_ANGLE_INTO_A_LINE -D $DBSCAN_DECREMENT_STEP -N $DBSCAN_FINAL_POINTS_PER_LINE $DBSCAN_STRAIT_BASELINES -t 30
 
    done
 

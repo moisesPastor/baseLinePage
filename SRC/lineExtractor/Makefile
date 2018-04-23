@@ -9,7 +9,7 @@ lineExtractor: lineExtractor.cc  Graf.o slopeClass.o
 	g++ -o lineExtractor lineExtractor.cc Graf.o slopeClass.o ${PROG_LIBS} ${INCLUDE}  ${OPEN_LIBS}  -O3  
 
 Graf.o: Graf.cc Graf.h
-	g++ -c Graf.cc  ${INCLUDE}  ${OPEN_LIBS}  -O3
+	g++ -c Graf.cc ${INCLUDE}  ${OPEN_LIBS}  -O3
 
 slopeClass.o: slopeClass.cc slopeClass.h
 	g++ -c slopeClass.cc  ${INCLUDE}  ${OPEN_LIBS}  -O3

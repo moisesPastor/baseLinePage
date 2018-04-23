@@ -17,5 +17,6 @@ DOUT=${2/\//}
 for file in `cat $1`; do
      Nom=`basename $file .$EXT`
      NOM=`echo -e ${DOUT}"/"${Nom}`
-     echo -e $NOM" "`lineExtractor -x ${NOM}.xml -i ${NOM}.jpg -t -v 1`
+     #echo -e $NOM" "`lineExtractor -x ${NOM}.xml -i ${NOM}.jpg -t -v 1`
+     echo -e $NOM" "`~/baseLinePage/SRC/lineExtractor/lineExtractor -x ${NOM}.xml -i ${NOM}.jpg -t -v 1`
 done

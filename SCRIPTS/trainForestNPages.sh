@@ -33,7 +33,7 @@ for file in `cat /tmp/train$NUM.lst`; do
   imageLocalExtrema -i ${NOM}.jpg -w $MINIMA_WINDOW -t $MIN_POINTS_CONTOUR -k $MIN_KERNEL_SIZE
 
 #  [ -e ${NOM}.qmin ] || \
-#  labelPointsFromBaselines -b ${NOM}.xml -m ${NOM}.min -u $CLASS_XML_UPPER_BOUND -d $CLASS_XML_DOWN_BOUND > ${NOM}.qmin
+  labelPointsFromBaselines -b ${NOM}.xml -m ${NOM}.min -u $CLASS_XML_UPPER_BOUND -d $CLASS_XML_DOWN_BOUND > ${NOM}.qmin
 
 #  [ -e ${NOM}.data ] || \
   pointsToClassifierData -i ${NOM}.jpg   -p ${NOM}.qmin  > ${NOM}.data

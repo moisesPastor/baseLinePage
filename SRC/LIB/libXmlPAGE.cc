@@ -106,8 +106,8 @@ vector <vector <cv::Point > > getRegions(pugi::xml_document & page){
   vector<cv::Point> tmp_region;
 
   for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
+    tmp_region.clear();
     getRegionCoords(text_region, tmp_region );
-     
     regions.push_back(tmp_region);
   }
   return regions;

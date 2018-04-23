@@ -13,6 +13,7 @@ baseLinePage:
 	make -C lineExtractor 
 	g++ -o pointsToClassifierData pointsToClassifierData.cc ${OPEN_LIBS} -O3
 	g++ -o drawBaselines drawBaselines.cc  LIB/libPoints.o LIB/libXmlPAGE.o -ILIB ${OPEN_LIBS} ${OTHER_LIBS} -O3
+	g++ -o point2Imgs point2Imgs.cc ${OPEN_LIBS} ${OTHER_LIBS} -O3
 	cp clusterLinies/mdbscan imageLocalExtrema/imageLocalExtrema Extremely_Randomized_Trees/ext_rand_trees labelPointsFromBaselines/labelPointsFromBaselines pointsToClassifierData drawBaselines lineExtractor/lineExtractor TranskribusBaseLineEvaluationScheme-0.1.3-jar-with-dependencies.jar ../BIN
 
 GTTool:
@@ -23,6 +24,7 @@ GTTool:
 clean:
 	rm pointsToClassifierData
 	rm drawBaselines
+	rm point2Imgs
 	make -C clusterLinies clean;
 	make -C imageLocalExtrema clean;
 	make -C Extremely_Randomized_Trees clean
