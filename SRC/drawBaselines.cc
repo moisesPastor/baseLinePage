@@ -38,7 +38,7 @@ static Scalar colors[] = {
   Scalar(160, 130, 240), Scalar(80, 50, 160), Scalar(60, 60, 60), Scalar(30, 100, 200), Scalar(100, 150, 250), Scalar(50, 200, 230), Scalar(25, 10, 100), Scalar(30, 235, 140), Scalar(15, 150, 80), Scalar(50, 250, 90), Scalar(5, 130, 30), Scalar(160, 210, 50), Scalar(210, 150, 70), Scalar(245, 240, 70), Scalar(160, 150, 20), Scalar(240, 190, 50), Scalar(120, 90, 10), Scalar(90, 60, 10), Scalar(250, 150, 50), Scalar(160, 90, 5), Scalar(110, 70, 20), Scalar(250, 120, 30), Scalar(250, 80, 5), Scalar(250, 70, 10), Scalar(240, 60, 30), Scalar(120, 30, 10), Scalar(120, 15, 10), Scalar(250, 30, 20), Scalar(240, 15, 15), Scalar(100, 3, 3),Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255), Scalar(255, 255, 0), Scalar(255, 0, 255), Scalar(0, 255, 255)
 };
 
-void drawPolyLines(Mat & img,vector< vector<Point> > & lines, int n_lin=-1 ){
+void drawPolyLines(Mat & img,vector< vector<Point> > & lines, bool withPoints=false, int n_lin=-1 ){
   int thickness=2;
   int lineType = 8;
   bool isClosed=false;
@@ -50,14 +50,15 @@ void drawPolyLines(Mat & img,vector< vector<Point> > & lines, int n_lin=-1 ){
     l=n_lin;
     num_lines=n_lin+1;
   }
-
+  Point startPoint, endPoint;
   for (; l <num_lines; l++) {
     for (uint p = 0; p < lines[l].size()-1; p++) {
-      Point startPoint = lines[l][p];
-      Point endPoint   = lines[l][p+1];
-      circle(img, startPoint, 4, colors[l%numColors], point_shape );
+      startPoint = lines[l][p];
+      endPoint   = lines[l][p+1];
+      if (withPoints) circle(img, startPoint, 4, colors[l%numColors], point_shape );
       line(img, startPoint, endPoint,colors[l%numColors], thickness,lineType,isClosed);
     }
+    if (withPoints) circle(img, endPoint, 4, colors[l%numColors], point_shape );
   }
 
 }
@@ -71,6 +72,7 @@ void usage (char * programName){
   cerr << "      options:" << endl;
   cerr << "             -i imageFileName" << endl;
   cerr << "             -x pointsFileName (XML PAGE format)" << endl;
+  cerr << "             -p with points (by default false) " << endl;
   cerr << "            [ -l #int draw just this line]" << endl;
   cerr << "            [-o outputfile] " << endl;
 }
@@ -79,13 +81,14 @@ int main(int argc,  char ** argv) {
  string inFileName="", outFileName="", xmlFileName="";
   int num_lin=-1; //vol dir totes les linies
   int option;
-
+  bool withPoints =false;
+  
   if(argc == 1){
     usage(argv[0]);
     return -1;
   }
 
-  while ((option=getopt(argc,argv,"i:o:x:l:v"))!=-1)
+  while ((option=getopt(argc,argv,"i:o:x:l:pv"))!=-1)
     switch (option)  {
     case 'i':
       inFileName = optarg;
@@ -95,6 +98,9 @@ int main(int argc,  char ** argv) {
       break;
     case 'x':
       xmlFileName = optarg;
+      break;
+    case 'p':
+      withPoints=true;
       break;
     case 'l':
       num_lin=atoi(optarg);
@@ -128,7 +134,7 @@ int main(int argc,  char ** argv) {
   vector <vector <cv::Point> >  lines= getBaselines(page);
   
 
-  drawPolyLines(img,lines,num_lin);
+  drawPolyLines(img,lines, withPoints, num_lin);
   if( outFileName.size() > 0)
     imwrite( outFileName, img);
  
