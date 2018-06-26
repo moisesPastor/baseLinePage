@@ -25,11 +25,11 @@
 /* The code is segmented into methods as much as possible to make easy the ampliation */
 /* of the supported features and/or the adaptation to changes in the PAGE XML format */
 
-#include <QDateTime>
-#include <QFile>
-#include <QMessageBox>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
+#include <QtCore/QDateTime>
+#include <QtCore/QFile>
+#include <QtWidgets/QMessageBox>
+#include <QtCore/QXmlStreamReader>
+#include <QtCore/QXmlStreamWriter>
 
 #include <iostream>
 

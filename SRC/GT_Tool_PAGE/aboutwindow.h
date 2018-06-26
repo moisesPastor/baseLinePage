@@ -20,7 +20,8 @@
 #ifndef ABOUTWINDOW_H
 #define ABOUTWINDOW_H
 
-#include <QtGui/QDialog>
+//#include <QtGui/QDialog>
+#include <qt5/QtWidgets/QDialog>
 #include <QtGui/QTextEdit>
 #include <QtGui/QVBoxLayout>
 

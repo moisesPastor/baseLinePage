@@ -17,10 +17,10 @@
  *      Author: Jorge Martinez Vargas ( jormarv5@fiv.upv.es )
  */
 
-#include <QMap>
-#include <QVariant>
-#include <QSpinBox>
-#include <QLabel>
+#include <QtCore/QMap>
+#include <QtCore/QVariant>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QLabel>
 #include <iostream>
 
 #include "settingswindow.h"

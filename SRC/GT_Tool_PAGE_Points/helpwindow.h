@@ -20,9 +20,9 @@
 #ifndef HELPWINDOW_H
 #define HELPWINDOW_H
 
-#include <QtGui/QDialog>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QVBoxLayout>
 
 #define HELP_L1 "See the manual (pdf) provided with the source code."
 

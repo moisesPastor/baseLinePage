@@ -20,9 +20,9 @@
 #ifndef ABOUTWINDOW_H
 #define ABOUTWINDOW_H
 
-#include <QtGui/QDialog>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QVBoxLayout>
 
 #define ABOUT_L1     "Layout and line supervisor for correcting automatic classification.  \n"
 #define ABOUT_L2     "  Created on: 2013 \n"

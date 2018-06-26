@@ -31,9 +31,10 @@ using namespace cv;
 int NUMCOLS_CONTEXT=130;
 int NUMROWS_CONTEXT=50; 
 
-const int FINALCOLS=25;
-const int FINALROWS=15;
-
+// const int FINALCOLS=25;
+// const int FINALROWS=15;
+const int FINALCOLS=50;
+const int FINALROWS=30;
 
 class labeledpoint{
 public:
@@ -239,7 +240,7 @@ void copyContext(Mat & img, Mat & img_context, int centerX, int centerY){
 //----------------------------------------------------------
 void getFeatures(Mat & img, labeledpoint point, int rows, int cols){
   cout << point.label<<",";
-  cout << point.x/(float)cols<< ","<< point.y/(float)rows<< ",";
+  //cout << point.x/(float)cols<< ","<< point.y/(float)rows<< ",";
   
   int cont=0;
   int maxCont=img.rows * img.cols;
@@ -440,11 +441,11 @@ int main (int argc, char** argv)   {
      
 
       
-      if (moments)
+      if (moments){
 	getFeatures_moments(img_context, points[p], img.rows, img.cols);
-      else{
+      }else{
 	 resize(img_context,img_context,Size(FINALCOLS,FINALROWS));
-	 normalize(img_context, img_context, 0, 255, NORM_MINMAX, CV_8UC1);
+	 // normalize(img_context, img_context, 0, 255, NORM_MINMAX, CV_8UC1);
 	 getFeatures(img_context, points[p], img.rows, img.cols);
       }
     }

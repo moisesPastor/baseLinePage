@@ -17,11 +17,11 @@
  *      Author: Jorge Martinez Vargas ( jormarv5@fiv.upv.es )
  */
 
-#include <QString>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QStringList>
-#include <QTextEdit>
+#include <QtCore/QString>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtCore/QStringList>
+#include <QtWidgets/QTextEdit>
 
 #include <iostream>
 #include <sstream>

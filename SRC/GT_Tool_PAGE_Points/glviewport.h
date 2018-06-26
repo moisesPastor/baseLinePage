@@ -21,7 +21,7 @@
 #define GLVIEWPORT_H
 
 #include <QtOpenGL/QGLWidget>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 #include <QtGui/QWheelEvent>
 #include <QtCore/QPoint>
 

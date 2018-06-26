@@ -1,5 +1,5 @@
 
-OPEN_LIBS=-lopencv_imgproc -lopencv_core  -lopencv_highgui
+OPEN_LIBS=-L/usr/local/lib -lopencv_imgproc -lopencv_core  -lopencv_highgui
 OTHER_LIBS=-lpugixml
 
 all: baseLinePage GTTool 

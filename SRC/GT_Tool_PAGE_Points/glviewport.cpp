@@ -17,12 +17,12 @@
  *      Author: Jorge Martinez Vargas ( jormarv5@fiv.upv.es )
  */
 
-#include <QString>
-#include <QMessageBox>
-#include <QTextStream>
-#include <QDataStream>
-#include <QFile>
-#include <QImage>
+#include <QtCore/QString>
+#include <QtWidgets/QMessageBox>
+#include <QtCore/QTextStream>
+#include <QtCore/QDataStream>
+#include <QtCore/QFile>
+#include <QtGui/QImage>
 
 #include <fstream>
 #include <string>

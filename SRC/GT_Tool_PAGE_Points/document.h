@@ -24,9 +24,9 @@
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 
-#include <QString>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
+#include <QtCore/QString>
+#include <QtCore/QXmlStreamReader>
+#include <QtCore/QXmlStreamWriter>
 #include <string>
 
 // Definition of valid TextRegion types (labels)

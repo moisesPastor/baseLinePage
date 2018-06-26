@@ -30,6 +30,12 @@ source $4
    echo ${DOUT}_$NAME_ERT
 
    cp -l $DOUT/*.jpg  ${DOUT}_$NAME_ERT
+   XMLS=`ls ${DOUT}_$NAME_ERT/*.xml|wc -l |awk '{print $1}'`
+   if [ $XMLS != 0 ] 
+   then
+	  echo "WARNING: XML files exists!!! "
+	  exit -1
+   fi
    cp  $DOUT/*.xml ${DOUT}_$NAME_ERT
 
   echo "getting points"
@@ -72,6 +78,6 @@ source $4
 
    done
 
-   rm ${DOUT}_$NAME_ERT/*.data  
-   rm ${DOUT}_$NAME_ERT/*.cmin 
+   #rm ${DOUT}_$NAME_ERT/*.data  
+   #rm ${DOUT}_$NAME_ERT/*.cmin 
    rm $mindata

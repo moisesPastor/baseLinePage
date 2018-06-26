@@ -20,14 +20,14 @@
 #ifndef SETTINGSWINDOW_H
 #define SETTINGSWINDOW_H
 
-#include <QtGui/QDialog>
-#include <QtGui/QVBoxLayout>
-#include <QCheckBox>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QRadioButton>
-#include <QPushButton>
-#include <QWidget>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QWidget>
 
 class SettingsWindow : public QDialog
 {
