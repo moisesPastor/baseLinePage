@@ -199,8 +199,8 @@ void fishEye(Mat & img, Mat & dst, float K_V, float K_H){
 }
 //----------------------------------------------------------
 Scalar frequentColor(Mat & img, int centerX,  int centerY){
-  int * hist = new int[255];
-  for (int i = 0; i < 255; i++) {
+  int * hist = new int[256];
+  for (int i = 0; i < 256; i++) {
     hist[i]=0;
   }
 
@@ -209,12 +209,12 @@ Scalar frequentColor(Mat & img, int centerX,  int centerY){
       int cOrig=centerX - (NUMCOLS_CONTEXT/2) + c;
       int rOrig=centerY - (NUMROWS_CONTEXT/2) + r;
       if (rOrig>=0 && rOrig<img.rows && cOrig>=0 && cOrig<img.cols)
-	hist[img.at<uchar>(r,c)]++;
+        hist[img.at<uchar>(rOrig,cOrig)]++;           
     }
   }
 
  int pos_max = 0;
-  for (int i = 0; i < 255; i++) {
+  for (int i = 0; i < 256; i++) {
     if (hist[pos_max] < hist[i])
       pos_max =i;
   }
@@ -224,6 +224,7 @@ Scalar frequentColor(Mat & img, int centerX,  int centerY){
   return Scalar(pos_max);
 
 }
+
 //----------------------------------------------------------
 void copyContext(Mat & img, Mat & img_context, int centerX, int centerY){
 

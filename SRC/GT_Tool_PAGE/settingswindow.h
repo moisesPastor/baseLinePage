@@ -20,8 +20,8 @@
 #ifndef SETTINGSWINDOW_H
 #define SETTINGSWINDOW_H
 
-#include <QtGui/QDialog>
-#include <QtGui/QVBoxLayout>
+#include <QDialog>
+#include <QVBoxLayout>
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>

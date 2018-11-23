@@ -628,7 +628,7 @@ void usage (char * programName){
   cerr << "             [-D #int] decrDistStep (default 5)" << endl;
   cerr << "             [-a #int] max angle allowed (by default 60 degrees)" << endl;
   cerr << "             [-m #int] min num of points per baseline to be considered (by default 2)" << endl;
-  cerr << "             [-s ] strait baseline (by default poliline)" << endl;
+  //  cerr << "             [-s ] strait baseline (by default poliline)" << endl;
   cerr << "             [-N #int] max num of points per baseline"<< endl;
   cerr << "             [-v #int verbosity] " << endl;
 }

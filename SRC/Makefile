@@ -1,5 +1,6 @@
 
-OPEN_LIBS=-L/usr/local/lib -lopencv_imgproc -lopencv_core  -lopencv_highgui
+OPEN_LIBS=-L/usr/local/lib `pkg-config --cflags --libs opencv`
+
 OTHER_LIBS=-lpugixml
 
 all: baseLinePage GTTool 

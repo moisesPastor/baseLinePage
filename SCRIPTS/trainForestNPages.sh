@@ -8,7 +8,8 @@ fi
 
 set -e
 
-PATH=$PATH:../../BIN:.
+PATH=$PATH:${HOME}/baseLinePage/BIN:.
+
 
 DOUT=${2/\\/}
 

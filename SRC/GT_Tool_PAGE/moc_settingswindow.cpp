@@ -1,25 +1,59 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'settingswindow.h'
 **
-** Created by: The Qt Meta Object Compiler version 63 (Qt 4.8.7)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.9.5)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
 #include "settingswindow.h"
+#include <QtCore/qbytearray.h>
+#include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'settingswindow.h' doesn't include <QObject>."
-#elif Q_MOC_OUTPUT_REVISION != 63
-#error "This file was generated using the moc from 4.8.7. It"
+#elif Q_MOC_OUTPUT_REVISION != 67
+#error "This file was generated using the moc from 5.9.5. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+struct qt_meta_stringdata_SettingsWindow_t {
+    QByteArrayData data[10];
+    char stringdata0[118];
+};
+#define QT_MOC_LITERAL(idx, ofs, len) \
+    Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
+    qptrdiff(offsetof(qt_meta_stringdata_SettingsWindow_t, stringdata0) + ofs \
+        - idx * sizeof(QByteArrayData)) \
+    )
+static const qt_meta_stringdata_SettingsWindow_t qt_meta_stringdata_SettingsWindow = {
+    {
+QT_MOC_LITERAL(0, 0, 14), // "SettingsWindow"
+QT_MOC_LITERAL(1, 15, 14), // "updateSettings"
+QT_MOC_LITERAL(2, 30, 0), // ""
+QT_MOC_LITERAL(3, 31, 23), // "QMap<QString,QVariant>&"
+QT_MOC_LITERAL(4, 55, 8), // "settings"
+QT_MOC_LITERAL(5, 64, 9), // "applySlot"
+QT_MOC_LITERAL(6, 74, 10), // "acceptSlot"
+QT_MOC_LITERAL(7, 85, 14), // "updateAutosave"
+QT_MOC_LITERAL(8, 100, 1), // "s"
+QT_MOC_LITERAL(9, 102, 15) // "updateOverwrite"
+
+    },
+    "SettingsWindow\0updateSettings\0\0"
+    "QMap<QString,QVariant>&\0settings\0"
+    "applySlot\0acceptSlot\0updateAutosave\0"
+    "s\0updateOverwrite"
+};
+#undef QT_MOC_LITERAL
+
 static const uint qt_meta_data_SettingsWindow[] = {
 
  // content:
-       6,       // revision
+       7,       // revision
        0,       // classname
        0,    0, // classinfo
        5,   14, // methods
@@ -29,30 +63,32 @@ static const uint qt_meta_data_SettingsWindow[] = {
        0,       // flags
        1,       // signalCount
 
- // signals: signature, parameters, type, tag, flags
-      25,   16,   15,   15, 0x05,
+ // signals: name, argc, parameters, tag, flags
+       1,    1,   39,    2, 0x06 /* Public */,
 
- // slots: signature, parameters, type, tag, flags
-      65,   15,   15,   15, 0x0a,
-      77,   15,   15,   15, 0x0a,
-      92,   90,   15,   15, 0x0a,
-     113,   90,   15,   15, 0x0a,
+ // slots: name, argc, parameters, tag, flags
+       5,    0,   42,    2, 0x0a /* Public */,
+       6,    0,   43,    2, 0x0a /* Public */,
+       7,    1,   44,    2, 0x0a /* Public */,
+       9,    1,   47,    2, 0x0a /* Public */,
+
+ // signals: parameters
+    QMetaType::Void, 0x80000000 | 3,    4,
+
+ // slots: parameters
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, QMetaType::Bool,    8,
+    QMetaType::Void, QMetaType::Bool,    8,
 
        0        // eod
-};
-
-static const char qt_meta_stringdata_SettingsWindow[] = {
-    "SettingsWindow\0\0settings\0"
-    "updateSettings(QMap<QString,QVariant>&)\0"
-    "applySlot()\0acceptSlot()\0s\0"
-    "updateAutosave(bool)\0updateOverwrite(bool)\0"
 };
 
 void SettingsWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
-        Q_ASSERT(staticMetaObject.cast(_o));
         SettingsWindow *_t = static_cast<SettingsWindow *>(_o);
+        Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->updateSettings((*reinterpret_cast< QMap<QString,QVariant>(*)>(_a[1]))); break;
         case 1: _t->applySlot(); break;
@@ -61,32 +97,34 @@ void SettingsWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
         case 4: _t->updateOverwrite((*reinterpret_cast< bool(*)>(_a[1]))); break;
         default: ;
         }
+    } else if (_c == QMetaObject::IndexOfMethod) {
+        int *result = reinterpret_cast<int *>(_a[0]);
+        {
+            typedef void (SettingsWindow::*_t)(QMap<QString,QVariant> & );
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&SettingsWindow::updateSettings)) {
+                *result = 0;
+                return;
+            }
+        }
     }
 }
 
-const QMetaObjectExtraData SettingsWindow::staticMetaObjectExtraData = {
-    0,  qt_static_metacall 
-};
-
 const QMetaObject SettingsWindow::staticMetaObject = {
-    { &QDialog::staticMetaObject, qt_meta_stringdata_SettingsWindow,
-      qt_meta_data_SettingsWindow, &staticMetaObjectExtraData }
+    { &QDialog::staticMetaObject, qt_meta_stringdata_SettingsWindow.data,
+      qt_meta_data_SettingsWindow,  qt_static_metacall, nullptr, nullptr}
 };
 
-#ifdef Q_NO_DATA_RELOCATION
-const QMetaObject &SettingsWindow::getStaticMetaObject() { return staticMetaObject; }
-#endif //Q_NO_DATA_RELOCATION
 
 const QMetaObject *SettingsWindow::metaObject() const
 {
-    return QObject::d_ptr->metaObject ? QObject::d_ptr->metaObject : &staticMetaObject;
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
 void *SettingsWindow::qt_metacast(const char *_clname)
 {
-    if (!_clname) return 0;
-    if (!strcmp(_clname, qt_meta_stringdata_SettingsWindow))
-        return static_cast<void*>(const_cast< SettingsWindow*>(this));
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_SettingsWindow.stringdata0))
+        return static_cast<void*>(this);
     return QDialog::qt_metacast(_clname);
 }
 
@@ -99,6 +137,10 @@ int SettingsWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         if (_id < 5)
             qt_static_metacall(this, _c, _id, _a);
         _id -= 5;
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        if (_id < 5)
+            *reinterpret_cast<int*>(_a[0]) = -1;
+        _id -= 5;
     }
     return _id;
 }
@@ -106,7 +148,8 @@ int SettingsWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 // SIGNAL 0
 void SettingsWindow::updateSettings(QMap<QString,QVariant> & _t1)
 {
-    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
+    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
+QT_WARNING_POP
 QT_END_MOC_NAMESPACE

@@ -1,7 +1,5 @@
 #include <iostream>
-
 #include <fstream>
-
 #include <opencv2/opencv.hpp>
 using namespace cv;
 using namespace std;
@@ -120,6 +118,128 @@ int getPointsFromFile(string pointsFileName,vector<Point> & points){
   }
   
   return (x_max - x_min);
+}
+//---------------------------------------------------------------------
+int getPointsFromFile(string pointsFileName,vector<Point3d> & points){
+
+  ifstream pointsFile;
+  pointsFile.open(pointsFileName.c_str());
+  if(!pointsFile){
+    cerr << "Error: File \""<< pointsFileName <<  "\" could not be open "<< endl;
+    exit(-1);
+  }
+
+  float x,y;
+  int clas;
+ 
+  const int BUFFSIZE = 120;
+  char buff[BUFFSIZE];
+  stringstream line;
+  int c=0;
+  do{
+    line.str(""); // per a buidar line
+    pointsFile.getline( buff,  BUFFSIZE );
+    line << buff;
+    if (c++ > 100) { 
+      cerr << "ERROR: Point header file format wrong!!" << endl;
+      exit (-1);
+    }
+  }while ('#' == line.peek() || line.str().size() == 0);
+
+  int numPoints;
+  line >> numPoints;
+  int cont_points=0;
+  int x_min=INT_MAX;
+  int x_max=0;
+  while (cont_points < numPoints) {
+    c=0;
+    do{
+      line.str(""); // per a buidar line
+      line.clear();
+      pointsFile.getline( buff,  BUFFSIZE );
+      line << buff;
+      if (pointsFile.eof()){
+	cerr << "ERROR Not enought number of points "<< cont_points << " and it is say to be " << numPoints << endl;
+	exit(-1);
+      }
+      if (c++ > 100) { 
+	cerr << "ERROR: Point file format wrong!!" << endl;
+	exit (-1);
+      }
+    }while ('#' == line.peek() || line.str().size() == 0);
+
+    line >> x >> y >> clas;
+   
+    points.push_back(Point3d(x,y,clas));
+
+    if (x > x_max) x_max=x;
+    if (x < x_min) x_min=x;
+      
+    cont_points++;
+  }
+  
+  return (x_max - x_min);
+}
+
+//per al sort
+bool compare_pointsX(Point a, Point b){
+  return a.x < b.x;
+}
+bool compare_pointsX3d(Point3d a, Point3d b){
+  return a.x < b.x;
+}
+//--
+//-------------------------------------------------------------
+void writePointsToFile(string outFileName,vector<Point>  selected_min){
+  ofstream minFile;
+
+  std::sort(selected_min.begin(), selected_min.end(), compare_pointsX);
+  minFile.open(outFileName.c_str());
+
+  if (!minFile){
+    cerr << "Error creating "<< outFileName << endl;
+    exit (-1); 
+  }
+
+  // writing head min points file
+  minFile << "# Number and class of extrema points" << endl;
+  minFile << selected_min.size() << " ";
+  minFile << "Min" << endl;
+  minFile << "# Points" << endl;
+
+  // writing min points
+  sort(selected_min.begin(), selected_min.end(), compare_pointsX);
+  for(unsigned int i=0;i<selected_min.size();i++)
+    minFile << selected_min[i].x << " " << selected_min[i].y << endl;
+
+  // clossing files
+  minFile.close();
+}
+
+//-------------------------------------------------------------
+void writePointsToFile(string outFileName,vector<Point3d> & selected_min){
+  ofstream minFile;
+
+  minFile.open(outFileName.c_str());
+
+  if (!minFile){
+    cerr << "Error creating "<< outFileName << endl;
+    exit (-1); 
+  }
+
+  // writing head min points file
+  minFile << "# Number and class of extrema points" << endl;
+  minFile << selected_min.size() << " ";
+  minFile << "Min" << endl;
+  minFile << "# Points" << endl;
+
+  // writing min points
+  sort(selected_min.begin(), selected_min.end(), compare_pointsX3d);
+  for(unsigned int i=0;i<selected_min.size();i++)
+    minFile << selected_min[i].x << " " << selected_min[i].y << " " << selected_min[i].z <<endl;
+
+  // clossing files
+  minFile.close();
 }
 
 //--------------------------------------------------------------------

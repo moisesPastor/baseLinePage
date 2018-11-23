@@ -32,6 +32,7 @@
 using namespace cv;
 using namespace std;
 
+bool verbosity=false;
 
 void usage(char * nomProg){
     cerr << "Usage: " << nomProg << " [options]" << endl;
@@ -43,6 +44,7 @@ void usage(char * nomProg){
     cerr << "       -n number of samples required to split a node (used in training, default 2)" << endl;
     cerr << "       -k number of random splits at each node (used in training, default sqrt(number_of_samples))" << endl;
     cerr << "       -s number of trees (used in training, default 100)" << endl;
+    cerr << "       -v verbosity (by defaul none)" << endl;
 }
 
 void displayTrainingParameters(string &inFile, string &treeFile, int max_depth, int nMin, int K, int M){
@@ -92,7 +94,7 @@ void trainERT(string &inFile, string &treeFile, int nMin, int K, int M){
     ert.train(&dataManager,*parameters);
     ert.save(treeFile.c_str());
     
-    if (calc_var_importance){
+    if (calc_var_importance && verbosity){
       Mat vars = ert.getVarImportance();
       for (int i = 0; i < vars.rows; i++) {
 	cout << vars.row(i) << endl;
@@ -165,7 +167,7 @@ int main(int argc, char ** argv){
         usage(argv[0]);
         return -1;
     }
-    while ((option=getopt(argc,argv,"hi:l:m:t:n:k:s:p:"))!=-1)
+    while ((option=getopt(argc,argv,"hi:l:m:t:n:k:s:p:v"))!=-1)
         switch (option)  {
             case 'i': // Input data for training, testing or classification
                 inFile=optarg;
@@ -199,7 +201,9 @@ int main(int argc, char ** argv){
 	    case 'p':
                 minProb=atof(optarg);
                 break;
-
+	    case 'v':
+	        verbosity=true;
+		break;
             case 'h':
             default:
                 usage(argv[0]);

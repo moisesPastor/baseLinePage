@@ -1,4 +1,5 @@
-OPEN_LIBS=-lopencv_imgproc -lopencv_core -lopencv_highgui -lpugixml
+OPEN_LIBS=`pkg-config --cflags --libs opencv` -lpugixml
+
 INCLUDES=-I. -I../LIB
 
 all: libPoints.o libXmlPAGE.o

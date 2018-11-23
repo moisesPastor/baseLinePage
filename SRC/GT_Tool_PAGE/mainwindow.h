@@ -20,18 +20,18 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtGui/QMainWindow>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLineEdit>
-#include <QtGui/QLabel>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
-#include <QtGui/QCheckBox>
+#include <QMainWindow>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QLabel>
+#include <QMenu>
+#include <QMenuBar>
+#include <QFile>
+#include <QTextStream>
+#include <QCheckBox>
 #include <QtCore/QVector>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QComboBox>
+#include <QComboBox>
 #include <QToolBar>
 
 #include "helpwindow.h"

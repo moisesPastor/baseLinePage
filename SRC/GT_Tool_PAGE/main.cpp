@@ -17,7 +17,7 @@
  *      Author: Jorge Martinez Vargas ( jormarv5@fiv.upv.es )
  */
 
-#include <QtGui/QApplication>
+#include <QApplication>
 
 #include <unistd.h>
 #include <iostream>

@@ -1,4 +1,4 @@
-OPENCV_LIBS=-lopencv_ml -lopencv_core
+OPENCV_LIBS=`pkg-config --cflags --libs opencv`
 PROGS=ext_rand_trees
 OPTIM=-O3
 all:${PROGS}

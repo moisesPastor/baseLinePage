@@ -1,4 +1,4 @@
-// compile: g++ -o adjustParam adjustParam.cc   -lopencv_imgproc -lopencv_core -lopencv_highgui
+// compile: g++ -o adjustParam adjustParam.cc   -lopencv_imgproc -lopencv_core -lopencv_highguiq
 
 #include <iostream>
 #include <fstream>
@@ -141,7 +141,8 @@ int main( int argc, char** argv ) {
     
      if (outFileName.size() == 0){
        // output files
-       string minFileName = inFileName.substr(0,inFileName.length()-3)+"min";
+       int pos = inFileName.find_last_of(".");
+       string minFileName = inFileName.substr(0,pos)+".min";
        loc.writeMinimaToFile(minFileName);
      }else
        loc.writeMinimaToFile(outFileName);
