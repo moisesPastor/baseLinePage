@@ -95,7 +95,7 @@ labeledpoint *readpoints(istream &fitx, int &length, bool &max){
 
   return points;
 }
-
+//----------------------------------------------------------
 
 void sampleImage(const Mat arr, float idx0, float idx1, Scalar& res){
 
@@ -198,10 +198,10 @@ void fishEye(Mat & img, Mat & dst, float K_V, float K_H){
     }
   }
 }
-
+//----------------------------------------------------------
 Scalar frequentColor(Mat & img, int centerX,  int centerY){
-  int * hist = new int[255];
-  for (int i = 0; i < 255; i++) {
+  int * hist = new int[256];
+  for (int i = 0; i < 256; i++) {
     hist[i]=0;
   }
 
@@ -210,12 +210,12 @@ Scalar frequentColor(Mat & img, int centerX,  int centerY){
       int cOrig=centerX - (NUMCOLS_CONTEXT/2) + c;
       int rOrig=centerY - (NUMROWS_CONTEXT/2) + r;
       if (rOrig>=0 && rOrig<img.rows && cOrig>=0 && cOrig<img.cols)
-	hist[img.at<uchar>(r,c)]++;
+	hist[img.at<uchar>(rOrig,cOrig)]++;	      
     }
   }
 
  int pos_max = 0;
-  for (int i = 0; i < 255; i++) {
+  for (int i = 0; i < 256; i++) {
     if (hist[pos_max] < hist[i])
       pos_max =i;
   }
@@ -257,7 +257,7 @@ void getFeatures(Mat & img, labeledpoint point, int rows, int cols){
 //----------------------------------------------------------
 void getFeatures_moments(Mat & img, labeledpoint point, int rows, int cols){
   cout << point.label<<",";
-  cout << point.x/(float)cols<< ","<< point.y/(float)rows<<",";
+  //cout << point.x/(float)cols<< ","<< point.y/(float)rows<<",";
   
   Mat canny_output;
   vector<vector<Point> > contours;
@@ -394,7 +394,7 @@ int main (int argc, char** argv)   {
     return -1;
   }
 
-  Mat img=imread(inFileName,0);
+  Mat img=imread(inFileName,CV_LOAD_IMAGE_GRAYSCALE);
   if (!img.data) {
     cerr << "ERROR reading the image file "<< inFileName<< endl;
     return -1;
@@ -427,7 +427,7 @@ int main (int argc, char** argv)   {
 	 	baseColor = frequentColor(img,points[p].x , points[p].y);
        }
       
-      Mat img_context(Size(NUMCOLS_CONTEXT ,NUMROWS_CONTEXT),img.type(), baseColor);      
+      Mat img_context(Size(NUMCOLS_CONTEXT ,NUMROWS_CONTEXT),img.type(), baseColor);            
       copyContext(img, img_context, points[p].x, points[p].y);
 
       //Mat img_fish(img_context.size(), img.type(), Scalar(255));
@@ -456,7 +456,7 @@ int main (int argc, char** argv)   {
       baseColor = frequentColor(img, centerX,  centerY);
     }
     Mat img_context(Size(NUMCOLS_CONTEXT,NUMROWS_CONTEXT),img.type(), baseColor);
-     copyContext(img, img_context, centerX,  centerY);
+    copyContext(img, img_context, centerX,  centerY);
 
     //aplicar ull de peix
     //Mat img_fish(img_context.size(), img.type(), Scalar(255));
@@ -473,6 +473,8 @@ int main (int argc, char** argv)   {
     
     //escriure a fitxer
     //imwrite(outFileName.c_str(),img_fish);
+
+    cout << " base Color " << baseColor << endl;
     imwrite(outFileName.c_str(),img_context);
     
   }

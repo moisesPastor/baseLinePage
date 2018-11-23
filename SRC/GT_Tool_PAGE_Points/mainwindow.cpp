@@ -334,7 +334,7 @@ void MainWindow::updatePosition(int x, int y){
 void MainWindow::loadPointsFile(char * filename){
   QString fileName;
   if(filename==0)
-    fileName=QFileDialog::getOpenFileName(this,"Open list file","","Labeled Minima Points files (*.min);;Minima Points files (*.qmin)");
+    fileName=QFileDialog::getOpenFileName(this,"Open list file","","Minima Points files (*.min);;Labeled Minima Points files (*.qmin)");
   else
     fileName=QString::fromStdString(filename);
   
@@ -408,9 +408,10 @@ void MainWindow::loadFile(char* filename, bool single){
     filetotal.append(QString().setNum(filelist->size()-1));
     file_total->setText(filetotal);
 
-    viewport->releasePoints();
+    
     
     if(viewport){
+        viewport->releasePoints();
         loadDocument();
         bool isThereAImageLoad = viewport->loadImage(data->get_image_Filename());
         viewport->setRegions(data->get_regions());
@@ -438,11 +439,14 @@ void MainWindow::nextImage(){
         current_file--;
         return;
     }
+    viewport->releasePoints();
     loadDocument();
     viewport->loadImage(data->get_image_Filename());
     viewport->setRegions(data->get_regions());
     viewport->updateGL();
     updateImgCount();
+
+    
 }
 
 void MainWindow::previousImage(){
@@ -462,6 +466,7 @@ void MainWindow::previousImage(){
         current_file++;
         return;
     }
+    viewport->releasePoints();
     loadDocument();
     viewport->loadImage(data->get_image_Filename());
     viewport->setRegions(data->get_regions());

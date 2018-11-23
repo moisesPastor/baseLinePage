@@ -61,6 +61,7 @@ GLViewport::GLViewport(QWidget *parent) :
     dist_maxima_UP_toBaseline=15;
     dist_maxima_DOWN_toBaseline=10;
     minimaPoints=0;
+    pointClases=0;
     last_line_ID_index=0;
     last_region_ID_index=0;
     used_line_IDs=0;
@@ -400,8 +401,13 @@ void GLViewport::setRegions(QVector<TextRegion> *nregions){
 void GLViewport::releasePoints(){
   if (minimaPoints != 0){
     delete minimaPoints;
-    delete pointClases;
+    minimaPoints=0;
   }
+  if (pointClases != 0){
+      delete pointClases;
+      pointClases = 0;
+  }
+  
 
 }
 /*****************************************************/
@@ -1070,6 +1076,7 @@ void GLViewport::keyPressEvent(QKeyEvent *event){
         }
        if (minimaPoints)
 	 getPointClasses();
+       break;
     default:
         QGLWidget::keyPressEvent(event);
     }
