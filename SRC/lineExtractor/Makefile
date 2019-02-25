@@ -1,6 +1,6 @@
 all: lineExtractor
 INCLUDE=-I. -I../LIB
-OPENCV_LIBS=`pkg-config --cflags --libs opencv` -lpugixml
+OPEN_LIBS=`pkg-config --cflags --libs opencv` -lpugixml
 
 PROG_LIBS=../LIB/libXmlPAGE.o ../LIB/libPoints.o
 
