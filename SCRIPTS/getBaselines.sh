@@ -11,37 +11,19 @@ fi
 #set -e stop the script if an error occurs
 
 PATH=$PATH:${HOME}/baseLinePage/BIN:.
-DOUT=${2/\//}
+#DOUT=${2/\//}
+DOUT=${2}
 ERT=$3
 source $4
 
 # classifying 
 
-   if ! [ -e $NAME_ERT ]
-   then
-      echo $NAME_ERT " cannot be oppened"
-      exit -1
-   fi
-
    mindata=$(mktemp /tmp/mindata.XXXXXX)
-
-   NAME_ERT=`basename $ERT`
-   mkdir ${DOUT}_$NAME_ERT
-   echo ${DOUT}_$NAME_ERT
-
-   cp -l $DOUT/*.jpg  ${DOUT}_$NAME_ERT
-   XMLS=`ls ${DOUT}_$NAME_ERT/*.xml|wc -l |awk '{print $1}'`
-   if [ $XMLS != 0 ] 
-   then
-	  echo "WARNING: XML files exists!!! "
-	  exit -1
-   fi
-   cp  $DOUT/*.xml ${DOUT}_$NAME_ERT
 
   echo "getting points"
   for file in `cat $1`; do
      Nom=`basename $file .$EXT`
-     NOM=`echo -e ${DOUT}_$NAME_ERT"/"${Nom}`
+     NOM=`echo -e ${DOUT}"/"${Nom}`
      echo $NOM
      [ -f ${NOM}.min ] || \
      imageLocalExtrema -i ${NOM}.jpg -w $MINIMA_WINDOW -t $MIN_POINTS_CONTOUR -k $MIN_KERNEL_SIZE
@@ -65,7 +47,7 @@ source $4
    set +e
    for file in `cat $1`; do
      Nom=`basename $file .$EXT`
-     NOM=`echo -e ${DOUT}_$NAME_ERT"/"${Nom}`
+     NOM=`echo -e ${DOUT}"/"${Nom}`
 
      echo "clustering points $file"
      echo -e "\n\n" > ${NOM}.cmin
@@ -78,6 +60,9 @@ source $4
 
    done
 
-   #rm ${DOUT}_$NAME_ERT/*.data  
-   #rm ${DOUT}_$NAME_ERT/*.cmin 
+   rm ${DOUT}/*.data  
+   rm ${DOUT}/*.cmin 
+   rm ${DOUT}/*.qmin 
+   rm ${DOUT}/*.data 
+   rm ${DOUT}/*.data.clas
    rm $mindata
