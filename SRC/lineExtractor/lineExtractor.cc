@@ -416,7 +416,8 @@ bool getLineImage(vector< vector<Point> > & lines,Mat & img,vector< vector<Point
     cami_baix=millorCami(rotada, lines_rotades);
 
   if  (cami_baix.size() <= 0){
-    cerr << "Cami de baix, not found in line "<< lin_num << endl;
+    if (verbosity > 1)
+      cerr << "Cami de baix, not found in line "<< lin_num << endl;
     return false;
   } else 
     for (int i = 0; i < cami_baix.size(); i++) {
@@ -619,7 +620,11 @@ int main(int argc,char** argv ) {
   size_t found = inFileName.find_last_of(".");
   inFileName.erase(found,-1);
 
-  
+  if(outputFileName.size() > 0){
+    found = outputFileName.find_last_of(".");
+    outputFileName.erase(found,-1);
+  }
+
   pugi::xml_document page;
   pugi::xml_parse_result result = page.load_file(xmlFileName.c_str());
   if (!result){
@@ -796,10 +801,15 @@ int main(int argc,char** argv ) {
 
 
       std::stringstream num_linea_str;
+      std::stringstream outFileName_line;
       num_linea_str << cont_lin++;
-      outputFileName=inFileName+"_"+num_linea_str.str()+".jpg";
-     
-      imwrite(outputFileName,img_lin);
+      if (outputFileName.size() > 0){
+	outFileName_line << outputFileName << "_" << num_linea_str.str()<< ".jpg";
+      }else{
+	outFileName_line <<inFileName<<"_"<<num_linea_str.str()<<".jpg";
+      }
+      
+      imwrite(outFileName_line.str(),img_lin);
       img_lin.release();
     }
 
