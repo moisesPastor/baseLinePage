@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ ! $# -eq 2 ]; then
-  echo "Use: ${0##*/} <testFileList> <Path_Dir_Output>"
+if [ ! $# -eq 3 ]; then
+  echo "Use: ${0##*/} <testFileList> <Path_Dir_Input> <Path_Dir_Output>"
   exit 1
 fi
 
@@ -11,12 +11,16 @@ fi
 #set -e stop the script if an error occurs
 
 PATH=$PATH:../../BIN:.
-DOUT=${2/\//}
+#DIN=${2/\//}
+DIN=${2}
+#DOUT=${3/\//}
+DOUT=${3}
 
 
 for file in `cat $1`; do
      Nom=`basename $file .$EXT`
-     NOM=`echo -e ${DOUT}"/"${Nom}`
+     NOM_IN=`echo -e ${DIN}"/"${Nom}`
+     NOM_OUT=`echo -e ${DOUT}"/"${Nom}`
      #echo -e $NOM" "`lineExtractor -x ${NOM}.xml -i ${NOM}.jpg -t -v 1`
-     echo -e $NOM" "`~/baseLinePage/SRC/lineExtractor/lineExtractor -x ${NOM}.xml -i ${NOM}.jpg -v 1`
+     echo -e $NOM_IN" "`lineExtractor -x ${NOM_IN}.xml -i ${NOM_IN}.jpg -o ${NOM_OUT}.jpg -v 1`
 done
