@@ -23,7 +23,7 @@ Toolkit to locate the baselines in handwritten text pages
 #### To get the scores
 *  measures.sh corpus.lst HypotesisDir GroundTruthDir
     * This tool is based on the java program used in [ICDAR 2017 Competition on Baseline Detection (cBAD)](https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme)
-    * In this [paper](https://arxiv.org/pdf/1705.03311.pdf) the  used is explained.
+    * In this [paper](https://doi.org/10.1016/j.patcog.2019.05.031) the  used is explained.
   
 
 #### ConfigFile.cnf: a set of environtment variables in a plain text file
