@@ -1,5 +1,6 @@
 ## To perform the test "taking one in":
 
+0. ./get_data.sh       ## get the data set
 1. ./trainAll.sh       ## it will train a ert classifier per page
 2. ./getBaselines.sh   ## it will obtain the baselines
 3. ././drawResults.sh  DIR corpus.lst        ## Change dir to be the directory with baselines
