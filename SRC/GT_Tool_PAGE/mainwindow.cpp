@@ -379,9 +379,11 @@ void MainWindow::loadFile(char* filename, bool single){
     if(viewport){
         loadDocument();
         bool isThereAImageLoad = viewport->loadImage(data->get_image_Filename());
-        viewport->setRegions(data->get_regions());
-	if (isThereAImageLoad)
+       
+	if (isThereAImageLoad){
+	  viewport->setRegions(data->get_regions());
 	  viewport->updateGL();
+	}
     }
     updateImgCount();
 }

@@ -1,5 +1,8 @@
-Project works with QT4.
-Some problems have been detected if you have installed both qt3 and qt4
+#Project works with QT5.
+sudo apt-get install qt5-default
+
+#qmake
+sudo apt install qtchooser
 
 To compile the project must do:
 make

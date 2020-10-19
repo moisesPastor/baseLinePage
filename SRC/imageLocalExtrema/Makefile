@@ -1,5 +1,5 @@
 #OPEN_LIBS=-lopencv_imgproc -lopencv_core -lopencv_highgui
-OPEN_LIBS=`pkg-config --cflags --libs opencv`
+OPEN_LIBS=`pkg-config --cflags --libs opencv4`
 PROGS=imageLocalExtrema
 OPTIM=-O3
 all:${PROGS}

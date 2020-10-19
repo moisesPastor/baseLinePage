@@ -1,13 +1,13 @@
 all: lineExtractor
 INCLUDE=-I. -I../LIB
-OPEN_LIBS=`pkg-config --cflags --libs opencv` -lpugixml
+OPEN_LIBS=`pkg-config --cflags --libs opencv4` -lpugixml
 
 PROG_LIBS=../LIB/libXmlPAGE.o ../LIB/libPoints.o
 
 
-lineExtractor: lineExtractor.cc  Graf.o slopeClass.o
+lineExtractor: lineExtractor.cc  Graf.o ../LIB/slopeClass.o
 	make -C ../LIB
-	g++ -o lineExtractor lineExtractor.cc Graf.o slopeClass.o ${PROG_LIBS} ${INCLUDE}  ${OPEN_LIBS}  -O3  
+	g++ -o lineExtractor lineExtractor.cc Graf.o ../LIB/slopeClass.o ${PROG_LIBS} ${INCLUDE}  ${OPEN_LIBS}  -O3  
 
 Graf.o: Graf.cc Graf.h
 	g++ -c Graf.cc ${INCLUDE}  ${OPEN_LIBS}  -O3

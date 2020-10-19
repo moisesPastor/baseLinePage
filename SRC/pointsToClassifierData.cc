@@ -394,7 +394,7 @@ int main (int argc, char** argv)   {
     return -1;
   }
 
-  Mat img=imread(inFileName,CV_LOAD_IMAGE_GRAYSCALE);
+  Mat img=imread(inFileName, IMREAD_GRAYSCALE);
   if (!img.data) {
     cerr << "ERROR reading the image file "<< inFileName<< endl;
     return -1;

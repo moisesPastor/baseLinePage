@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <opencv2/opencv.hpp>
-
+//#include <opencv2/opencv.hpp>
+#include "/usr/include/opencv4/opencv2/opencv.hpp"
 
 using namespace cv;
 using namespace std;
@@ -107,7 +107,7 @@ int main( int argc, char** argv ) {
   if (graphicalMode){
            
     const char* main_window = "Minima control";
-    namedWindow(main_window,CV_GUI_EXPANDED);    
+    namedWindow(main_window, WINDOW_GUI_EXPANDED);    
     resizeWindow(main_window, 1600,1200);    
     
     createTrackbar("win context:", main_window, &(loc.window), 100, callback, &loc);
@@ -121,7 +121,7 @@ int main( int argc, char** argv ) {
     const char ESC = (char)27;
     char k;
     do
-      k=cvWaitKey(0);
+      k=waitKey(0);
     while (k != ESC);
 
     //ara sobre la imatge original
@@ -159,14 +159,14 @@ LocalMinima::LocalMinima(String inFileName,int window=10,int pTallMin=30, int ke
   this->kernel_size = kernel_size;
   this->verbosity = verbosity;
   
-  img=imread( inFileName.c_str(), CV_LOAD_IMAGE_GRAYSCALE );
+  img=imread( inFileName.c_str(), IMREAD_GRAYSCALE );
   if (!img.data) {
     cerr << "ERROR reading the image file "<< inFileName<< endl;
     exit(-1);
   }
 
   
-  threshold(img, img, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+  threshold(img, img, 0, 255, THRESH_BINARY | THRESH_OTSU);
   
   //dilatacio vertical
   Mat kernel_v = getStructuringElement( MORPH_RECT,  Size(3,1),  Point(1, 0 ) );
@@ -187,7 +187,7 @@ void LocalMinima::preprocessing(Mat & img_gray){
    
    GaussianBlur(img_gray, img_gray, Size( 5, 5 ),3,3);
    
-   threshold(img_gray, img_gray, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+   threshold(img_gray, img_gray, 0, 255, THRESH_BINARY | THRESH_OTSU);
 
 }
 //-------------------------------------------------------------
@@ -204,7 +204,7 @@ void LocalMinima::getMinimaPoints(Mat & img_aux){
   vector<Vec4i> hierarchy(0);
 
   
-  findContours(img_aux, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+  findContours(img_aux, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_NONE);
 
   
   for (unsigned int c=0; c < contours.size(); c++)
@@ -378,7 +378,7 @@ Mat LocalMinima::pintaPuntsEnContorns(Mat & img_gray){
   vector<vector<Point> > contours(0);
   vector<Vec4i> hierarchy(0);
 
-  findContours(img_gray, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+  findContours(img_gray, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_NONE);
     for (unsigned int c=0; c < contours.size(); c++){
       if ( hierarchy[c][3] != -1 ||hierarchy[c][3]==0 ) 
         if (contours[c].size() > pTallMin)

@@ -308,7 +308,7 @@ void plotPolyLines(Mat grouped, vector<vector< vector<Point> > > lines, bool pri
    
       if (!printPolyline){
 	Vec4f paramLine;
-	fitLine(Mat(lines[r][lin]), paramLine,CV_DIST_WELSCH,0,0.01,0.01);
+	fitLine(Mat(lines[r][lin]), paramLine,DIST_WELSCH,0,0.01,0.01);
       
 	float vx=paramLine[0];
 	float vy =paramLine[1];
@@ -864,7 +864,7 @@ int main(int argc,char** argv ) {
 
   
   if (inFileName.size()!=0 && outFileName.size()!=0){
-    Mat img_tmp = imread(inFileName,CV_LOAD_IMAGE_COLOR);    
+    Mat img_tmp = imread(inFileName,IMREAD_COLOR);    
     plotPoints(lines_finals,img_tmp);
     plotPolyLines(img_tmp,lines_finals,printPolyline);
     //plotRegions(img_tmp,regions );

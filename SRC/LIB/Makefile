@@ -1,4 +1,4 @@
-OPEN_LIBS=`pkg-config --cflags --libs opencv` -lpugixml
+OPEN_LIBS=`pkg-config --cflags --libs opencv4` -lpugixml
 
 INCLUDES=-I. -I../LIB
 
