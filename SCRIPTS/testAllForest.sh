@@ -49,7 +49,7 @@ for file in `cat $1`; do
    done
  
    echo "Classifing..."
-   ext_rand_trees -l ${mindata} -m classify -t ${DOUT}/${Nom1}.ert  -p $MINIM_PROB_TO_TRUE
+   rand_trees -l ${mindata} -m classify -t ${DOUT}/${Nom1}.rt  -p $MINIM_PROB_TO_TRUE
    status=$?
    if test ${status} -ne 0
    then

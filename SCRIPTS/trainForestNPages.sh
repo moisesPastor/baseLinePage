@@ -43,5 +43,5 @@ for file in `cat /tmp/train$NUM.lst`; do
 done
 
 
-ext_rand_trees -i train_$NUM.data -m train -t $DOUT/Rodrigo_$NUM.ert
+rand_trees -i train_$NUM.data -m train -t $DOUT/Rodrigo_$NUM.rt
 rm train_$NUM.data

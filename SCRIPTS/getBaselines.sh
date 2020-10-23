@@ -35,7 +35,7 @@ source $4
   done
 
    echo "classifying"
-   ext_rand_trees -l ${mindata} -m classify -t ${ERT}  
+   rand_trees -l ${mindata} -m classify -t ${ERT}  
    status=$?
    if test ${status} -ne 0
    then

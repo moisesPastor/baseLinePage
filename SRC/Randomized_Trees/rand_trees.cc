@@ -61,12 +61,17 @@ void trainRT(string &inFile, string &treeFile, int nMin, int K, int M){
   //MLData dataManager;    
   //int ret_val = dataManager.read_csv(inFile.c_str());
 
-  Ptr<TrainData> dataManager =TrainData::loadFromCSV(inFile.c_str(),0,-1,-1,"ord[1-]cat[0]");
-
+  // Ptr<TrainData> dataManager =TrainData::loadFromCSV(inFile.c_str(),0,-1,-1,"ord[1-]cat[0]");
+  
+  Ptr<TrainData> dataManager =TrainData::loadFromCSV(inFile.c_str(),0,0);
+ 
   if(dataManager == NULL){
     cerr << "Error reading the input data " << endl;
     return;
   }
+   Mat* data = new Mat(dataManager->getSamples());
+   
+   
   //  dataManager->change_var_type(0, VAR_CATEGORICAL); // The first column has the labels
   //  dataManager->set_response_idx(0); ATENCIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 
@@ -115,18 +120,20 @@ void trainRT(string &inFile, string &treeFile, int nMin, int K, int M){
     }
     
     //delete parameters;
-    delete rt;
-    delete dataManager;
+    //delete rt;
+    //delete dataManager;
 }
 
 
 void classifyRT( vector<string> & files, string &treeFile, float minProb){
-  Ptr<RTrees> rt = RTrees::create();
-  rt->load(treeFile.c_str()); 
+  //Ptr<RTrees> rt = RTrees::create();
+  //  rt->load(treeFile.c_str());
+  Ptr<RTrees> rt = RTrees::load(treeFile.c_str());
   
   for(int i=0;i<files.size();i++){
     //CvMLData dataManager;
-     Ptr<TrainData> dataManager =TrainData::loadFromCSV(files[i].c_str(),0);
+    
+    Ptr<TrainData> dataManager =TrainData::loadFromCSV(files[i].c_str(),0,0);
 	    
     if(dataManager == NULL){
       cerr << "Error reading the input data for file " << files[i] << endl;
@@ -141,9 +148,7 @@ void classifyRT( vector<string> & files, string &treeFile, float minProb){
       out.open(outname.c_str());
 
       for(int j=0;j<data->rows;j++){  //CvForestTree* get_tree(int i) const;
-	//cout << data->row(j)<< endl;
 	float clas = rt->predict(data->row(j));
-
 	/*
 	float cont=0;
 	int ntrees = rt->get_tree_count();
@@ -163,8 +168,8 @@ void classifyRT( vector<string> & files, string &treeFile, float minProb){
       }
       out.close();
       delete data;
-      delete rt;
-      delete dataManager;
+      //delete rt;
+      // delete dataManager;
     }    
   }
 }

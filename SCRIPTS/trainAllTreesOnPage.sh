@@ -31,7 +31,7 @@ for file in `cat $1`; do
 
   pointsToClassifierData -i ${NOM}.jpg   -p ${NOM}.qmin  > ${NOM}.data
 
-  ext_rand_trees -i ${NOM}.data -m train -t ${NOM}.ert
+  rand_trees -i ${NOM}.data -m train -t ${NOM}.rt
 
 done
 #rm ${DOUT}/*.data ${DOUT}/*.qmin  ${DOUT}/*.min
