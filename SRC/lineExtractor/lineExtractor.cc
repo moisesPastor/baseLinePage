@@ -25,6 +25,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <stack> 
 #include <vector>
@@ -562,7 +563,7 @@ void use (char * programName){
   cerr << "             [-o #String ] outputImageFile] " << endl;
   cerr << "             [-d ] demo (by default false)]" << endl;
   //  cerr << "             [-m #int ] (by default 4)] min num points per line" << endl;
-  cerr << "             [-t ] segment just the baseline (by default no)"<< endl;
+  // cerr << "             [-t ] segment just the baseline (by default no)"<< endl;
   cerr << "             [-v #int ] level of verbosity (by default 0)]" << endl;
 
 }
@@ -573,7 +574,7 @@ int main(int argc,char** argv ) {
   int option;
   bool deBatABat=true;
 
-  while ((option=getopt(argc,argv,"i:x:dm:o:tv:"))!=-1)
+  while ((option=getopt(argc,argv,"i:x:dm:o:v:"))!=-1)
     switch (option)  {
     case 'i':
       inFileName = optarg;
@@ -809,14 +810,15 @@ int main(int argc,char** argv ) {
       }
       std::stringstream num_linea_str;
       std::stringstream outFileName_line;
-      num_linea_str << cont_lin++;
+      num_linea_str << setw(2) << setfill('0') <<cont_lin;
       if (outputFileName.size() > 0){
-	outFileName_line << outputFileName << "_" << num_linea_str.str()<< ".jpg";
+	outFileName_line << outputFileName;
       }else{
-	//outFileName_line <<inFileName<<"_"<<num_linea_str.str()<<".jpg";
-	//cout << cont_lin<< " " << lines[cont_lin].name << endl;
-	outFileName_line <<inFileName<<"_"<< num_linea_str.str()<< "_"<< lines[cont_lin].name<<".jpg";
+	outFileName_line << inFileName; 
       }
+
+      outFileName_line <<"_"<< num_linea_str.str()<< "_"<< lines[cont_lin].name << ".jpg";
+      cont_lin++;
 
       imwrite(outFileName_line.str(),img_lin);
       img_lin.release();
