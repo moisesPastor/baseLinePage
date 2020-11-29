@@ -856,6 +856,10 @@ int main(int argc,char** argv ) {
       lines_finals.push_back(lines);
     }
 
+  //ordenem les linies
+  for (int i = 0; i < lines_finals.size(); i++) {
+      std::sort(lines_finals[i].begin(), lines_finals[i].end(),sort_lines_func);
+  }
 
   //actualitzar xml
   updateXml(page,lines_finals,finalNumberOfPointsPerLine);

@@ -20,8 +20,58 @@
 #include <opencv2/opencv.hpp>
 #include "pugixml.hpp"
 #include "libPoints.h"
+#include "libXmlPAGE.h"
 using namespace std;
 
+LineStruct::LineStruct(string n, vector<cv::Point > points){
+	name = n;
+	linePoints = points;
+}
+/*LineStruct::LineStruct(const LineStruct & L){
+  name = L.name;
+  linePoints = L.linePoints;
+  }*/
+
+void getLineIds(pugi::xml_node & text_region,  vector< string > & linesId){
+  for (pugi::xml_node line_region = text_region.child("TextLine"); line_region; line_region = line_region.next_sibling("TextLine")){   
+    linesId.push_back(line_region.attribute("TextLine id").value());
+  }
+}
+void getBaselinesFromRegion_id(pugi::xml_node & text_region, vector< LineStruct > & baselines){
+  vector<cv::Point> tmp_baseline;
+  
+  for (pugi::xml_node line_region = text_region.child("TextLine"); line_region; line_region = line_region.next_sibling("TextLine")){   
+      tmp_baseline.clear();
+      std::vector<std::string> string_values;
+      string line_id = line_region.attribute("id").value();
+      string point_string = line_region.child("Baseline").attribute("points").value();
+     
+      if(point_string != ""){
+
+        istringstream point_stream(point_string);
+        std::string string_point;
+        while (point_stream >> string_point){
+          int cont_comas=0;
+          for (int i = 0; i < string_point.size(); i++) {
+            if (string_point[i] == ','){
+              string_point[i] = ' ';
+              cont_comas++;
+            }
+          }
+
+          if (cont_comas != 1){
+            cerr << "drawBaselines ERROR: regions cords bad format"<< endl;
+            exit(-1);
+          }     
+
+          int x,y;
+          istringstream(string_point) >> x >> y;;
+          tmp_baseline.push_back(cv::Point(x,y));
+        }
+        baselines.push_back( LineStruct(line_id,tmp_baseline)); 
+      }      
+    }
+}
 
 void getBaselinesFromRegion(pugi::xml_node & text_region, vector< vector <cv::Point > > & baselines){
   vector<cv::Point> tmp_baseline;
@@ -30,7 +80,7 @@ void getBaselinesFromRegion(pugi::xml_node & text_region, vector< vector <cv::Po
       tmp_baseline.clear();
       std::vector<std::string> string_values;
       string point_string = line_region.child("Baseline").attribute("points").value();
-      
+     
       if(point_string != ""){
 
         istringstream point_stream(point_string);
@@ -114,7 +164,7 @@ vector <vector <cv::Point > > getRegions(pugi::xml_document & page){
 }
 
 //--------------------------------------------------------------------
-void updateXml(pugi::xml_document & page,  std::vector< std::vector< std::vector<cv::Point> > > & lines_finals, int numPointsPerLine=-1){
+void updateXml(pugi::xml_document & page,  std::vector< std::vector< std::vector<cv::Point> > > & lines_finals, int numPointsPerLine){
 
   if (lines_finals.size() <= 0 ) return;
 

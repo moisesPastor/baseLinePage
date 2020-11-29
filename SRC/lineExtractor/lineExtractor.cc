@@ -42,8 +42,7 @@ using namespace std;
 int verbosity=0;
 bool demo=false;
 //int MIN_NUM_POINTS_LINE=4;  //VORE QUE FER AMB AÇO
-
-
+const int MARGE=20;
 //---------------------------------------------------------------------
 struct  k{
   bool operator() (cv::Point pt1, cv::Point pt2) { if(pt1.x < pt2.x) return true; else if (pt1.x > pt2.x) return false; else return pt1.x < pt2.y ;}
@@ -51,19 +50,20 @@ struct  k{
 
 //---------------------------------------------------------------------
 struct k1{
-  bool operator() (vector< Point > v1, vector < Point > v2){
+  bool operator() (LineStruct v1, LineStruct v2){
     double sum_y_v1=0;
-    for (unsigned int i = 0; i < v1.size(); ++i){
-      sum_y_v1+=v1[i].y;
+    for (unsigned int i = 0; i < v1.linePoints.size(); ++i){
+      sum_y_v1+=v1.linePoints[i].y;
     }
 
     double sum_y_v2=0;
-    for (unsigned int i = 0; i < v2.size(); ++i){
-      sum_y_v2+=v2[i].y;
+    for (unsigned int i = 0; i < v2.linePoints.size(); ++i){
+      sum_y_v2+=v2.linePoints[i].y;
     }
 
-    double mean_y_v1=sum_y_v1/v1.size();
-    double mean_y_v2=sum_y_v2/v2.size();
+    double mean_y_v1=sum_y_v1/v1.linePoints.size();
+    double mean_y_v2=sum_y_v2/v2.linePoints.size();
+    
     if (mean_y_v1 <= mean_y_v2) return true;
     else return false;
   }
@@ -189,17 +189,17 @@ void loadPolyLines(string linesFileName,vector< vector<Point> > & lines){
 
 
 //----------------------------------------------------------
-vector<Point>  millorCami(Mat & rotada, vector< vector<Point> >  & lines_rotades){
+vector<Point>  millorCami(Mat & rotada, vector< LineStruct>  & lines_rotades){
   //marges rotats. Valors respecte al eix de coord de la rotada
   map<int,ys> marges;
 
   int p_central=0, p_down=0;
   for (int x = 0; x < rotada.cols; x++) {
-    if (p_central < lines_rotades[0].size()-2 && x >= lines_rotades[0][p_central+1].x) p_central++;
-    if (p_down < lines_rotades[1].size()-2 &&x >= lines_rotades[1][p_down+1].x) p_down++;
+    if (p_central < lines_rotades[0].linePoints.size()-2 && x >= lines_rotades[0].linePoints[p_central+1].x) p_central++;
+    if (p_down < lines_rotades[1].linePoints.size()-2 &&x >= lines_rotades[1].linePoints[p_down+1].x) p_down++;
    
-    int y_central=calc_y(lines_rotades[0][p_central],lines_rotades[0][p_central+1],x);
-    int y_down   =calc_y(lines_rotades[1][p_down],   lines_rotades[1][p_down+1],x);
+    int y_central=calc_y(lines_rotades[0].linePoints[p_central],lines_rotades[0].linePoints[p_central+1],x);
+    int y_down   =calc_y(lines_rotades[1].linePoints[p_down],   lines_rotades[1].linePoints[p_down+1],x);
 
     if (y_central >= rotada.rows) y_central=rotada.rows-1;
     if (y_down >= rotada.rows) y_down=rotada.rows-1;
@@ -353,57 +353,57 @@ vector<Point>  millorCami(Mat & rotada, vector< vector<Point> >  & lines_rotades
 }
 
 //----------------------------------------------------------
-bool getLineImage(vector< vector<Point> > & lines,Mat & img,vector< vector<Point> > & segmentacio , unsigned int lin_num, Rect regio){
+bool getLineImage(vector< LineStruct > & lines,Mat & img,vector< vector<cv::Point> > & segmentacio , unsigned int lin_num, Rect regio){
 
   //obtenim les vores de la imatge a tallar
   int y_min=INT_MAX;
   int y_max=0;
-  for (int i = 0; i < lines[lin_num].size(); i++) 
-    if (y_min > lines[lin_num][i].y)
-      y_min = lines[lin_num][i].y;
+  for (int i = 0; i < lines[lin_num].linePoints.size(); i++) 
+    if (y_min > lines[lin_num].linePoints[i].y)
+      y_min = lines[lin_num].linePoints[i].y;
   
-  for (int i = 0; i < lines[lin_num+1].size(); i++) 
-    if ( y_max < lines[lin_num+1][i].y)
-       y_max = lines[lin_num+1][i].y;
+  for (int i = 0; i < lines[lin_num+1].linePoints.size(); i++) 
+    if ( y_max < lines[lin_num+1].linePoints[i].y)
+       y_max = lines[lin_num+1].linePoints[i].y;
 
   if (lin_num == lines.size()-1) y_max=img.rows-1;
 
   if (y_min + 10 > y_max) return false;
 
+  
   // using clone
   Mat linia=img(Rect(regio.tl().x, y_min, regio.br().x-regio.tl().x, y_max-y_min+1)).clone();
 
-
-  
   slopeClass rotator(linia);
   linia.release();
   rotator.deslope();
- 
-  
+   
   double angle=rotator.getSlopeAngle();
   rotator.rotar(-angle);
   Mat rotada=rotator.getRotada();
   
  //rotem els punts
-  vector< vector<Point> >lines_rotades(2);
+  vector< LineStruct >lines_rotades(2);
   for (int l = 0; l <2; l++) 
-    for (int p = 0; p < lines[lin_num + l].size(); p++) {
-      lines_rotades[l].push_back(rotatePoint(lines[lin_num + l][p], -angle, img));
-      lines_rotades[l][lines_rotades[l].size()-1].y -= y_min; //relatiu a la imatge retallada
-      if (lines_rotades[l][p].y < 0) lines_rotades[l][p].y = 0;
-      if (lines_rotades[l][p].y >= rotada.rows) lines_rotades[l][p].y = rotada.rows-1;
-      if (lin_num+l == lines.size()-1) lines_rotades[l][p].y = rotada.rows-1; //piso per a l'ultima linia
+    for (int p = 0; p < lines[lin_num + l].linePoints.size(); p++) {
+      lines_rotades[l].linePoints.push_back(rotatePoint(lines[lin_num + l].linePoints[p], -angle, img));
+      lines_rotades[l].linePoints[lines_rotades[l].linePoints.size()-1].y -= y_min; //relatiu a la imatge retallada
+      if (lines_rotades[l].linePoints[p].y < 0) lines_rotades[l].linePoints[p].y = 0;
+      if (lines_rotades[l].linePoints[p].y >= rotada.rows) lines_rotades[l].linePoints[p].y = rotada.rows-1;
+      if (lin_num+l == lines.size()-1) lines_rotades[l].linePoints[p].y = rotada.rows-1; //piso per a l'ultima linia
     }
 
   for (int l = 0; l < 2; l++) { 
     //afegim punt inicial a la col 0 i final a numCols-1
-     lines_rotades[l].insert(lines_rotades[l].begin(), Point(0,lines_rotades[l][0].y));
-     if (lines_rotades[l][0].y < 0) lines_rotades[l][0].y = 0;
-     if (lines_rotades[l][0].y >= rotada.rows) lines_rotades[l][0].y = rotada.rows-1;
+     lines_rotades[l].linePoints.insert(lines_rotades[l].linePoints.begin(), Point(0,lines_rotades[l].linePoints[0].y));
+     if (lines_rotades[l].linePoints[0].y < 0) lines_rotades[l].linePoints[0].y = 0;
+     if (lines_rotades[l].linePoints[0].y >= rotada.rows) lines_rotades[l].linePoints[0].y = rotada.rows-1;
 
-     lines_rotades[l].push_back(Point(rotada.cols-1, lines_rotades[l][lines_rotades[l].size()-1].y));
-     if (lines_rotades[l][lines_rotades[l].size()-1].y < 0) lines_rotades[l][lines_rotades[l].size()-1].y = 0;
-     if (lines_rotades[l][lines_rotades[l].size()-1].y >= rotada.rows) lines_rotades[l][lines_rotades[l].size()-1].y = rotada.rows-1;
+     lines_rotades[l].linePoints.push_back(Point(rotada.cols-1, lines_rotades[l].linePoints[lines_rotades[l].linePoints.size()-1].y));
+     lines_rotades[l].name = lines[l].name;
+     
+     if (lines_rotades[l].linePoints[lines_rotades[l].linePoints.size()-1].y < 0) lines_rotades[l].linePoints[lines_rotades[l].linePoints.size()-1].y = 0;
+     if (lines_rotades[l].linePoints[lines_rotades[l].linePoints.size()-1].y >= rotada.rows) lines_rotades[l].linePoints[lines_rotades[l].linePoints.size()-1].y = rotada.rows-1;
   }
 
   static vector<Point> cami_dalt;
@@ -512,18 +512,18 @@ void purgarSegmentacio(  vector< vector<Point> >segmentacio, Mat img){
 }
 
 //----------------------------------------------------------
-void pintaLinies(Mat & img, bool deBatABat,  vector <vector <cv::Point> >  lines,vector< map<int,int> > seg_lines){
-  int MARGE=80;
+void pintaLinies(Mat & img, bool deBatABat,  vector <LineStruct>  lines,vector< map<int,int> > seg_lines){
+  
   //pinta el poligon al voltant de les frases
   int x_ini=0;
   int x_fi=img.cols-1;
     
     //per a la primera linia
      if (!deBatABat){
-       x_ini=lines[0][0].x - MARGE;
+       x_ini=lines[0].linePoints[0].x - MARGE;
       	if (x_ini < 0) x_ini=0;	
 
-	x_fi=lines[0][lines[0].size()-1].x+MARGE;
+	x_fi=lines[0].linePoints[lines[0].linePoints.size()-1].x+MARGE;
       	if (x_fi > img.cols) x_fi=img.cols-1;
      }
      for (int x = x_ini; x <x_fi; ++x)
@@ -535,11 +535,11 @@ void pintaLinies(Mat & img, bool deBatABat,  vector <vector <cv::Point> >  lines
      
     for (int lin = 1; lin < seg_lines.size(); lin++) {
       if (!deBatABat){
-	x_ini=lines[lin][0].x < lines[lin-1][0].x ? lines[lin][0].x : lines[lin-1][0].x ;
+	x_ini=lines[lin].linePoints[0].x < lines[lin-1].linePoints[0].x ? lines[lin].linePoints[0].x : lines[lin-1].linePoints[0].x ;
 	x_ini-=MARGE;
       	if (x_ini < 0) x_ini=0;
 
-      	x_fi=lines[lin][lines[lin].size()-1].x > lines[lin-1][lines[lin-1].size()-1].x ? lines[lin][lines[lin].size()-1].x : lines[lin-1][lines[lin-1].size()-1].x;
+      	x_fi=lines[lin].linePoints[lines[lin].linePoints.size()-1].x > lines[lin-1].linePoints[lines[lin-1].linePoints.size()-1].x ? lines[lin].linePoints[lines[lin].linePoints.size()-1].x : lines[lin-1].linePoints[lines[lin-1].linePoints.size()-1].x;
 	x_fi+=MARGE;
       	if (x_fi > img.cols) x_fi=img.cols-1;
       }
@@ -647,7 +647,7 @@ int main(int argc,char** argv ) {
 
  vector< vector<Point> >segmentacio(0);
  vector <cv::Point>  region;
- vector <vector <cv::Point> >  lines;
+ vector <LineStruct>  lines;
  int cont_lin=0, cont_reg=0;
  for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
 
@@ -655,7 +655,7 @@ int main(int argc,char** argv ) {
    getRegionCoords(text_region, region);
    
    lines.clear();
-   getBaselinesFromRegion(text_region, lines);
+   getBaselinesFromRegion_id(text_region, lines);
    
    if (verbosity > 0)
      cout << "Region " << cont_reg << " Number of lines " << lines.size() << endl;
@@ -664,14 +664,15 @@ int main(int argc,char** argv ) {
 
    //ordenem els punts d'esquerre a dreta
    for (uint l = 0; l < lines.size(); l++) {       
-      std::sort(lines[l].begin(), lines[l].end(), sort_points_func);
+      std::sort(lines[l].linePoints.begin(), lines[l].linePoints.end(), sort_points_func);
     }  
-
+   
    //rotem els punts
    for (int l = 0; l < lines.size(); l++) 
-     for (int p = 0; p < lines[l].size(); p++) 
-       lines[l][p]=rotatePoint(lines[l][p], -angleSlope, img);
-
+     for (int p = 0; p < lines[l].linePoints.size(); p++) 
+       lines[l].linePoints[p]=rotatePoint(lines[l].linePoints[p], -angleSlope, img);
+   
+ 
    //ordenem les linies
    std::sort(lines.begin(), lines.end(), sort_lines_func);
 
@@ -705,7 +706,7 @@ int main(int argc,char** argv ) {
   vector<Point> ultimaLinia;
   ultimaLinia.push_back(Point(minX, maxY));
   ultimaLinia.push_back(Point(maxX, maxY));
-  lines.push_back(ultimaLinia);
+  lines.push_back(LineStruct("ultima",ultimaLinia));
  
   
   // obtenim la segmentacio
@@ -771,13 +772,13 @@ int main(int argc,char** argv ) {
 
     for (uint seg = 0; seg < segmentacio.size()-1; seg++) {
 
-      int xini=rect.tl().x;
-      int xfi=rect.br().x;
+      int xini=rect.tl().x ;
+      int xfi=rect.br().x ;
 
       if (!deBatABat){
-	xini=lines[seg][0].x;
+	xini=lines[seg].linePoints[0].x ;
 	if (xini < 0) xini=0;
-	xfi=lines[seg][lines[seg].size()-1].x ;
+	xfi=lines[seg].linePoints[lines[seg].linePoints.size()-1].x ;
 	if (xfi > img_rotated.cols) xfi=img_rotated.cols-1;
       }
 
@@ -791,7 +792,7 @@ int main(int argc,char** argv ) {
       } 
 
       Mat img_lin(y_max-y_min+1, xfi-xini,  CV_8UC1, Scalar(255));
-      
+
       for (int x = xini; x < xfi; x++)
 	if ( seg_lines[seg].find(x) != seg_lines[seg].end())
 	  for (int y = seg_lines[seg][x]; y < seg_lines[seg+1][x]; y++) 
@@ -800,19 +801,26 @@ int main(int argc,char** argv ) {
       
 
 
+      if (!deBatABat){
+	int x = lines[seg].linePoints[0].x;
+	int x2 =lines[seg].linePoints[lines[seg].linePoints.size()-1].x;
+	cout << " x " << x << " x2 " << x2 << " " << img_lin.size() << endl;
+	img_lin = img_lin(Rect(Point(x,0),Point(x2, img_lin.size().height-1)));
+      }
       std::stringstream num_linea_str;
       std::stringstream outFileName_line;
       num_linea_str << cont_lin++;
       if (outputFileName.size() > 0){
 	outFileName_line << outputFileName << "_" << num_linea_str.str()<< ".jpg";
       }else{
-	outFileName_line <<inFileName<<"_"<<num_linea_str.str()<<".jpg";
+	//outFileName_line <<inFileName<<"_"<<num_linea_str.str()<<".jpg";
+	//cout << cont_lin<< " " << lines[cont_lin].name << endl;
+	outFileName_line <<inFileName<<"_"<< num_linea_str.str()<< "_"<< lines[cont_lin].name<<".jpg";
       }
-      
+
       imwrite(outFileName_line.str(),img_lin);
       img_lin.release();
     }
-
   }
   cont_reg++;
  }

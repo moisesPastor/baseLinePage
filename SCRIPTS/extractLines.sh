@@ -22,5 +22,5 @@ for file in `cat $1`; do
      NOM_IN=`echo -e ${DIN}"/"${Nom}`
      NOM_OUT=`echo -e ${DOUT}"/"${Nom}`
      #echo -e $NOM" "`lineExtractor -x ${NOM}.xml -i ${NOM}.jpg -t -v 1`
-     echo -e $NOM_IN" "`lineExtractor -x ${NOM_IN}.xml -i ${NOM_IN}.jpg -o ${NOM_OUT}.jpg -v 1`
+     echo -e $NOM_IN" "`lineExtractor -t -x ${NOM_IN}.xml -i ${NOM_IN}.jpg -o ${NOM_OUT}.jpg -v 1`
 done
