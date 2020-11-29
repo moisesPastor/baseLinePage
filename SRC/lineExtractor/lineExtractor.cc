@@ -558,23 +558,93 @@ void use (char * programName){
   cerr << "Usage: "<<programName << " options " << endl;
   cerr << "      options:" << endl;
   cerr << "             -x #String; inputPageXmlFile" << endl;
-  cerr << "             -i #String;  inputImageFile" << endl; 
+  cerr << "             -i #String;  inputImageFile" << endl;
+  cerr << "             -r #int; final number of rows (by default 64)]" << endl;
   //cerr << "             [-l #int line to be extracted (by default all)]" << endl;
-  cerr << "             [-o #String ] outputImageFile] " << endl;
-  cerr << "             [-d ] demo (by default false)]" << endl;
+  cerr << "             [-o #String ] outputImageFile " << endl;
+  cerr << "             [-d ] demo (by default false)" << endl;
   //  cerr << "             [-m #int ] (by default 4)] min num points per line" << endl;
   // cerr << "             [-t ] segment just the baseline (by default no)"<< endl;
   cerr << "             [-v #int ] level of verbosity (by default 0)]" << endl;
 
 }
 
+Mat cropVertical(Mat & image){
+
+   vector<vector<Point> > contours;
+   vector<Vec4i> hierarchy;
+
+   Mat img(image.size(), image.type());
+
+   int pad=3;
+   copyMakeBorder( image, img, pad, pad, pad,  pad , BORDER_CONSTANT, Scalar(255) );
+
+   cv::threshold( img,img, 0, 255, THRESH_BINARY  | THRESH_OTSU);
+   
+   
+   Mat img2(image.size(), image.type());
+   img.copyTo(img2);
+
+   cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT , cv::Size(7, 3));
+   cv::erode(img, img, element);
+ 
+   findContours(img, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+  
+   /// Find the convex hull object for each contour
+   vector<vector<Point> >hull( contours.size() );
+
+   vector<Point> contour;
+   float superficieMax=0;
+   int contourMaxSuperficie=1;
+   for( uint i = 0; i < contours.size(); i++ )  {
+     
+     if ( hierarchy[i][3] != -1 && contours[i].size() > 4){
+       convexHull( Mat(contours[i]), hull[i] );
+       approxPolyDP(Mat(hull[i]), contour, 0.001, true);
+       float sup =  contourArea(hull[i]);
+       if (sup > superficieMax){
+         superficieMax=sup;
+         contourMaxSuperficie = i;
+       }
+     }
+   }
+   
+     int altura = -1;
+     int y_orig = 0;
+     int max_y=-1, min_y=100000;
+     
+     for (uint h = 0; h < hull[contourMaxSuperficie].size(); h++) {
+       int y = hull[contourMaxSuperficie][h].y;
+       if (y > max_y) max_y = y;
+       if (y < min_y) min_y = y;
+     }
+     
+     if (max_y-min_y > altura){
+       altura = max_y-min_y;
+       y_orig = min_y;
+     }
+     //   }
+     // }
+
+     altura = altura > -1 ? altura: img.rows;
+       
+    y_orig = y_orig - pad >= 0 ? y_orig-pad: 0;
+    altura = altura + y_orig < image.rows ? altura: image.rows - y_orig;
+    Rect rectCrop(0, y_orig, image.cols-1, altura);       
+    image = Mat(image, rectCrop);
+
+
+   return image;
+}
+
 //----------------------------------------------------------
 int main(int argc,char** argv ) {
   string inFileName="",xmlFileName="",outputFileName="";
-  int option;
+  int option, finalNumberRows=64;;
   bool deBatABat=true;
 
-  while ((option=getopt(argc,argv,"i:x:dm:o:v:"))!=-1)
+  while ((option=getopt(argc,argv,"i:x:dm:o:v:r:"))!=-1)
     switch (option)  {
     case 'i':
       inFileName = optarg;
@@ -585,6 +655,10 @@ int main(int argc,char** argv ) {
     case 'o':
       outputFileName = optarg;
       break;
+    case 'r':
+        finalNumberRows=atoi(optarg);
+        break;
+
     case 'd':
       demo=true;
       break;
@@ -820,6 +894,12 @@ int main(int argc,char** argv ) {
       outFileName_line <<"_"<< num_linea_str.str()<< "_"<< lines[cont_lin].name << ".jpg";
       cont_lin++;
 
+
+      img_lin = cropVertical(img_lin);
+      float factor=float(finalNumberRows)/img_lin.rows;
+      cv::resize(img_lin, img_lin, cv::Size(int(img_lin.cols*factor), finalNumberRows), 0, 0, INTER_LANCZOS4);// CV_INTER_LINEAR);
+
+      
       imwrite(outFileName_line.str(),img_lin);
       img_lin.release();
     }
