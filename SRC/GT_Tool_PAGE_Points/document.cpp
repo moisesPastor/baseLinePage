@@ -553,15 +553,58 @@ void TextLine::write(QXmlStreamWriter &xml){
     xml.writeEndElement();  
 }
 
+//---------------------------------------------------------------------
+struct k1{
+  bool operator() (TextLine v1, TextLine v2){
+    double sum_y_v1=0;
+
+    for (int i = 0; i < v1.baseline.size(); ++i){
+      sum_y_v1+=v1.baseline[i].y;
+    }
+
+    double sum_y_v2=0;
+    for (int i = 0; i < v2.baseline.size(); ++i){
+      sum_y_v2+=v2.baseline[i].y;
+    }
+
+      
+    double mean_y_v1=sum_y_v1/v1.baseline.size();
+    double mean_y_v2=sum_y_v2/v2.baseline.size();
+    
+    if (mean_y_v1 <= mean_y_v2) return true;
+    else return false;
+    
+    return false; //llevar
+  }
+} sort_lines_func;
+//---------------------------------------------------------------------
+void TextRegion::reetiquetaLines(){
+ for(int i=0;i<lines.size();i++){
+   lines[i].id.remove(QRegExp("[0-9][0-9]$"));
+   QString lin_num;
+   lin_num.sprintf("%02i",i);
+   lines[i].id.append(lin_num);     
+ }
+}
+//---------------------------------------------------------------------
+
 void TextRegion::write(QXmlStreamWriter &xml){
     // <TextRegion>
     xml.writeStartElement("TextRegion");
     writeAttributes(xml);
     Document::writeCoords(xml,coords,"Coords");
-    for(int i=0;i<lines.size();i++)
+
+
+    sort(lines.begin(),lines.end(), sort_lines_func);
+    reetiquetaLines();    //reetiquetar-les linies
+    
+    for(int i=0;i<lines.size();i++){
         lines[i].write(xml);
+    }
+    
     if(textEquiv.plainText != "" || textEquiv.unicode != "")
         textEquiv.write(xml);
+
     // </TextRegion>
     xml.writeEndElement();
 }

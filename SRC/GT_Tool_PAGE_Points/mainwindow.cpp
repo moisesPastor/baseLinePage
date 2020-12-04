@@ -63,7 +63,7 @@ MainWindow::MainWindow(char* filename, bool single, QWidget *parent)
     dist_maxima_UP_toBaseline=15;
     dist_maxima_DOWN_toBaseline=10;
     mode = LINE_MODE;
-    setWindowTitle("GT_Tool_PAGE Baseline mode");
+    setWindowTitle("GT_Tool_PAGE_Points Baseline mode");
     data=0;
     setCentralWidget(viewport);
     createMenuBar();
@@ -244,9 +244,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
             }
             updateImgCount();
             loadDocument();
-            viewport->loadImage(data->get_image_Filename());
-            viewport->setRegions(data->get_regions());
-            viewport->updateGL();
+	    if (viewport->loadImage(data->get_image_Filename()))
+	      viewport->setRegions(data->get_regions());
+	    
+	    //if (isThereAImageLoad)
+	    //if (kk)
+	      viewport->updateGL();
             break;
         case Qt::Key_Escape:
             viewport->makeCurrent();
@@ -417,6 +420,8 @@ void MainWindow::loadFile(char* filename, bool single){
         viewport->setRegions(data->get_regions());
 	if (isThereAImageLoad)
 	  viewport->updateGL();
+	else
+	  viewport->initializeGL();
     }
     updateImgCount();
 }
@@ -441,9 +446,12 @@ void MainWindow::nextImage(){
     }
     viewport->releasePoints();
     loadDocument();
-    viewport->loadImage(data->get_image_Filename());
+    bool isThereAImageLoad = viewport->loadImage(data->get_image_Filename());
     viewport->setRegions(data->get_regions());
-    viewport->updateGL();
+    if (isThereAImageLoad)
+      viewport->updateGL();
+    else
+      viewport->initializeGL();
     updateImgCount();
 
     
@@ -468,9 +476,12 @@ void MainWindow::previousImage(){
     }
     viewport->releasePoints();
     loadDocument();
-    viewport->loadImage(data->get_image_Filename());
+    bool isThereAImageLoad = viewport->loadImage(data->get_image_Filename());
     viewport->setRegions(data->get_regions());
-    viewport->updateGL();
+    if (isThereAImageLoad)
+      viewport->updateGL();
+    else
+      viewport->initializeGL();
     updateImgCount();
 }
 

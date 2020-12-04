@@ -879,7 +879,7 @@ int main(int argc,char** argv ) {
       if (!deBatABat){
 	int x = lines[seg].linePoints[0].x;
 	int x2 =lines[seg].linePoints[lines[seg].linePoints.size()-1].x;
-	cout << " x " << x << " x2 " << x2 << " " << img_lin.size() << endl;
+	//cout << " x " << x << " x2 " << x2 << " " << img_lin.size() << endl;
 	img_lin = img_lin(Rect(Point(x,0),Point(x2, img_lin.size().height-1)));
       }
       std::stringstream num_linea_str;
@@ -891,7 +891,8 @@ int main(int argc,char** argv ) {
 	outFileName_line << inFileName; 
       }
 
-      outFileName_line <<"_"<< num_linea_str.str()<< "_"<< lines[cont_lin].name << ".jpg";
+      //outFileName_line <<"_"<< num_linea_str.str()<< "_"<< lines[cont_lin].name << ".jpg";
+      outFileName_line << "_" << lines[cont_lin].name << ".jpg";
       cont_lin++;
 
 

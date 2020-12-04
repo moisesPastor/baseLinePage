@@ -139,6 +139,8 @@ struct TextRegion{
     int readTextLine(QXmlStreamReader &xml,  QXmlStreamReader::TokenType &token);
     void writeAttributes(QXmlStreamWriter &xml);
     void write(QXmlStreamWriter &xml);
+	private:
+    void reetiquetaLines();
 };
 
 class Document{

@@ -220,7 +220,7 @@ void GLViewport::paintGL(){
             if(lines){
 	      glLineWidth(1);
 	      for (int reg = 0; reg < regions->size(); reg++){
-		lines=&(*regions)[reg].lines;
+		lines=&(*regions)[reg].lines;		
 		for(int i=0;i<(*lines).size();i++){
 		  // Baselines
 		  glPushMatrix(); 
@@ -799,7 +799,11 @@ void GLViewport::mousePressEvent(QMouseEvent *event){
 		    
                     if(event->modifiers() & Qt::ShiftModifier){ // New line
                         TextLine nline;
-			nline.id = generateNewID("l");
+			//nline.id = generateNewID("l");
+			nline.id = "l";
+			nline.id.append(QString::number(reg_num_selected));
+			nline.id.append("_");
+			nline.id.append(QString::number(selected_region->lines.size()));
 			nline.baseline.append(Point(nx, ny));
 			selected_region->lines.append(nline);
 			modified = true;
@@ -1092,6 +1096,7 @@ QString GLViewport::generateNewID(QString type){
             newID="r";
             newID.append(QString::number(last_region_ID_index));
         }while(used_region_IDs->contains(newID));
+	
     }else if(type == "l"){ // Line
         do{
             last_line_ID_index++;
@@ -1104,7 +1109,8 @@ QString GLViewport::generateNewID(QString type){
             new_index = last_line_ID_index;
         else
             new_index = last_region_ID_index;
-        do{
+
+	do{
             new_index++;
             newID=type;
             newID.append(QString::number(new_index));

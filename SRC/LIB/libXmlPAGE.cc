@@ -17,6 +17,7 @@
  *      Author: Moisés Pastor i Gadea
  */
 #include <vector>
+#include <iomanip>
 #include <opencv2/opencv.hpp>
 #include "pugixml.hpp"
 #include "libPoints.h"
@@ -31,6 +32,10 @@ LineStruct::LineStruct(string n, vector<cv::Point > points){
   name = L.name;
   linePoints = L.linePoints;
   }*/
+
+int getWidth(pugi::xml_document & page){
+  return atoi(page.child("PcGts").child("Page").attribute("imageWidth").value());
+}
 
 void getLineIds(pugi::xml_node & text_region,  vector< string > & linesId){
   for (pugi::xml_node line_region = text_region.child("TextLine"); line_region; line_region = line_region.next_sibling("TextLine")){   
@@ -108,6 +113,19 @@ void getBaselinesFromRegion(pugi::xml_node & text_region, vector< vector <cv::Po
     }
 
 }
+
+//----------------------------------------------------------
+vector <LineStruct> getBaselines_id(pugi::xml_document & page){
+
+  vector< LineStruct > baselines;
+
+  for (pugi::xml_node text_region = page.child("PcGts").child("Page").child("TextRegion"); text_region; text_region = text_region.next_sibling("TextRegion")){
+    getBaselinesFromRegion_id(text_region,baselines);
+    
+
+  }
+  return baselines;
+} 
 //----------------------------------------------------------
 vector <vector <cv::Point > > getBaselines(pugi::xml_document & page){
 
@@ -200,7 +218,7 @@ void updateXml(pugi::xml_document & page,  std::vector< std::vector< std::vector
       
       pugi::xml_attribute id_attr = line.append_attribute("id");
       stringstream ss;
-      ss << "l" << n_reg<<"_"<<l;
+      ss << "l" << n_reg<<"_"<< setw(2) << setfill('0') << l;
       id_attr.set_value(ss.str().c_str());
       
       pugi::xml_node line_coords=line.append_child("Coords");

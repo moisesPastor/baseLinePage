@@ -126,10 +126,8 @@ void trainRT(string &inFile, string &treeFile, int nMin, int K, int M){
 
 
 void classifyRT( vector<string> & files, string &treeFile, float minProb){
-  //Ptr<RTrees> rt = RTrees::create();
-  //  rt->load(treeFile.c_str());
-  Ptr<RTrees> rt = RTrees::load(treeFile.c_str());
-  
+    Ptr<RTrees> rt = RTrees::load(treeFile.c_str());
+
   for(int i=0;i<files.size();i++){
     //CvMLData dataManager;
     
@@ -236,13 +234,29 @@ int main(int argc, char ** argv){
                 return 1;
         }
     if(inFile=="" && listInFile==""){
-        cerr << "Error: no input data filename" << endl;
+        cerr << "ERROR: no input data filename" << endl;
         return -1;
     }
     if(treeFile==""){
-        cerr << "Error: no tree filename" << endl;
+        cerr << "ERROR: no tree filename" << endl;
         return -1;
     }
+
+
+    ifstream treeFileCheck(treeFile);
+    if(!treeFileCheck.is_open()){
+      cerr << "ERROR: File \""<<treeFile << "\" not found" << endl;
+      return -1;
+    }
+    treeFileCheck.close();
+
+    ifstream inFileCheck(inFile);
+    if(!inFileCheck.is_open()){
+      cerr << "ERROR: File \""<<inFile << "\" not found" << endl;
+      return -1;
+    }
+    inFileCheck.close();
+    
     switch(mode){
         case MODE_TRAIN:
             trainRT(inFile, treeFile, nMin, K, M);
@@ -267,7 +281,7 @@ int main(int argc, char ** argv){
 	}
        default:
 
-	 cerr << argv[0]<< " --> Error: mode must be specified"<< endl;
+	 cerr << argv[0]<< " --> ERROR: mode must be specified"<< endl;
     } 
     return 0;
 
