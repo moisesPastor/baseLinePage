@@ -496,6 +496,7 @@ void TextRegion::writeAttributes(QXmlStreamWriter &xml){
     /* Some comprobations regarding valid types may be needed, but will be made by the tool.
         If someone else is going to use this code for other purposes may want to consider this */
     xml.writeAttributes(attributes);
+
 }
 
 void TextLine::writeAttributes(QXmlStreamWriter &xml){
@@ -577,13 +578,20 @@ struct k1{
     return false; //llevar
   }
 } sort_lines_func;
+
+#include <QTextStream>
+#include <iomanip>
+
 //---------------------------------------------------------------------
 void TextRegion::reetiquetaLines(){
- for(int i=0;i<lines.size();i++){
-   lines[i].id.remove(QRegExp("[0-9][0-9]$"));
+ for(int i=0;i<lines.size();i++){   
+   lines[i].id.clear();
    QString lin_num;
-   lin_num.sprintf("%02i",i);
-   lines[i].id.append(lin_num);     
+   lin_num.sprintf("l%02i",i);
+      
+   lines[i].id.append(id+"_");
+   lines[i].id.append(lin_num);
+   
  }
 }
 //---------------------------------------------------------------------

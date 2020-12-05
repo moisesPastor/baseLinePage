@@ -697,13 +697,15 @@ int main(int argc,char** argv ) {
 
   if(outputFileName.size() > 0){
     found = outputFileName.find_last_of(".");
-    outputFileName.erase(found,-1);
+    if (found > -1)
+      outputFileName.erase(found,-1);
   }
 
   pugi::xml_document page;
   pugi::xml_parse_result result = page.load_file(xmlFileName.c_str());
   if (!result){
-    cerr << "ERROR: file: " << xmlFileName << " could not be opened" << endl;
+    cerr << "ERROR reading \"" << xmlFileName << "\""<< endl;
+    cerr << "\t" << result.description()<< endl;
     exit(-1);
   }
  
@@ -900,8 +902,15 @@ int main(int argc,char** argv ) {
       float factor=float(finalNumberRows)/img_lin.rows;
       cv::resize(img_lin, img_lin, cv::Size(int(img_lin.cols*factor), finalNumberRows), 0, 0, INTER_LANCZOS4);// CV_INTER_LINEAR);
 
-      
-      imwrite(outFileName_line.str(),img_lin);
+      bool write_result=false;
+      try{
+	write_result = imwrite(outFileName_line.str(),img_lin);
+      } catch (const cv::Exception& ex)	{
+        cerr <<  "Exception writing imaget: %s\n"<< ex.what()<< endl;
+      }
+      if (!write_result){
+	cerr << "ERROR: output file "<< outFileName_line.str() << " can not be created " << endl;
+      }
       img_lin.release();
     }
   }

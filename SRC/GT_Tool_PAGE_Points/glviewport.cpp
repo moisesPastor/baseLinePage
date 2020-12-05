@@ -1036,6 +1036,7 @@ void GLViewport::keyPressEvent(QKeyEvent *event){
                 selected_handle = 0;
                 closest_handle = 0;
                 recalculateRegionHandles();
+		last_region_ID_index--;
                 modified = true;
             }
         }else if(mode == LINE_MODE){
@@ -1091,10 +1092,10 @@ void GLViewport::keyPressEvent(QKeyEvent *event){
 QString GLViewport::generateNewID(QString type){
     QString newID="";
     if(type == "r"){ // Region
-        do{
-            last_region_ID_index++;
+        do{            
             newID="r";
             newID.append(QString::number(last_region_ID_index));
+	    last_region_ID_index++;
         }while(used_region_IDs->contains(newID));
 	
     }else if(type == "l"){ // Line
