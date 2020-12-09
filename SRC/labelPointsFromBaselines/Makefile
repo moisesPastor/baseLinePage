@@ -4,4 +4,4 @@ labelPointsFromBaselines: labelPointsFromBaselines.cc
 	g++ -o  labelPointsFromBaselines labelPointsFromBaselines.cc ${OPEN_LIBS} -O3
 
 clean:
-	rm labelPointsFromBaselines
+	rm -f labelPointsFromBaselines

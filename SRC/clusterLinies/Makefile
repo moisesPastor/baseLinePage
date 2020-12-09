@@ -7,6 +7,6 @@ mdbscan: mdbscan.cc  ../LIB/slopeClass.cc
 	make -C ../LIB
 	g++ -o mdbscan mdbscan.cc  ../LIB/slopeClass.cc ../LIB/libPoints.o ../LIB/libXmlPAGE.o ${INCLUDES} ${OPEN_LIBS} -O3
 clean:
-	rm mdbscan ../LIB/libPoints.o ../LIB/libXmlPAGE.o
+	rm -f mdbscan ../LIB/libPoints.o ../LIB/libXmlPAGE.o
 
 

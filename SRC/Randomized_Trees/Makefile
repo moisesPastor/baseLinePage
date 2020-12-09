@@ -7,4 +7,4 @@ rand_trees: rand_trees.cc
 	g++ -o rand_trees rand_trees.cc ${OPENCV_LIBS} ${OPTIM}
 
 clean:
-	rm rand_trees
+	rm -f rand_trees

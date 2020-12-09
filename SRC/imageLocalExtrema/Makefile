@@ -6,4 +6,4 @@ all:${PROGS}
 imageLocalExtrema: imageLocalExtrema.cc 
 	g++ -o imageLocalExtrema imageLocalExtrema.cc ${OPEN_LIBS}  ${OPTIM}
 clean:
-	rm  imageLocalExtrema
+	rm -f imageLocalExtrema

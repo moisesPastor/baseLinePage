@@ -23,13 +23,13 @@ GTTool:
 	cp GT_Tool_PAGE_Points/GT_Tool_PAGE_Points ../BIN
 
 clean:
-	rm pointsToClassifierData
-	rm drawBaselines
-	rm point2Imgs
+	rm -f pointsToClassifierData
+	rm -f drawBaselines
+	rm -f point2Imgs
 	make -C clusterLinies clean;
 	make -C imageLocalExtrema clean;
 	make -C Randomized_Trees clean
 	make -C labelPointsFromBaselines clean
 	make -C lineExtractor clean
 	make -C GT_Tool_PAGE_Points clean
-	make -C GT_Tool_PAGE_Points distclean
+#	make -C GT_Tool_PAGE_Points distclean
