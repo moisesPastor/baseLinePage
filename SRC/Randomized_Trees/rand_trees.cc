@@ -70,45 +70,24 @@ void trainRT(string &inFile, string &treeFile, int nMin, int K, int M){
     return;
   }
    Mat* data = new Mat(dataManager->getSamples());
-   
-   
-  //  dataManager->change_var_type(0, VAR_CATEGORICAL); // The first column has the labels
-  //  dataManager->set_response_idx(0); ATENCIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-
-     /* max_depth shouldn't be used, nMin limits the tree depth
        
-	calc_var_importance should be set to false, but setting it to
-       true could be interesting in the future to see if there are
-       areas that are systematically non informative. 
-
-       If we set term_criteria to CV_TERMCRIT_ITER, M is used to
-       determine when to stop (max numer of trees), if we set it to
-       CV_TERMCRIT_EPS, forest_accuracy is used. We can use both (one
-       | theother) too.
-       */
-    
     int max_depth = 1000;
     int max_categories = 2;
     bool calc_var_importance = true;    
     float forest_accuracy = 1e-6; // Not used
     int term_criteria = TermCriteria::MAX_ITER + TermCriteria::EPS;
     
-    //    ml::RTParams* parameters = new CvRTParams(max_depth, nMin, 0.0, false, max_categories,
-    //					    0, calc_var_importance, 
-    //                                        K, M, forest_accuracy, term_criteria);
     
     Ptr<RTrees> rt = RTrees::create();
-    //NOU
     rt->setMaxDepth(max_depth);
     rt->setMinSampleCount(nMin);
     rt->setMaxCategories(max_categories);
     rt->setTermCriteria(TermCriteria(term_criteria, 100, forest_accuracy));
     //falta calc_var_importance i term_criteria
-      ///
+    
 
     displayTrainingParameters(inFile, treeFile, max_depth, nMin, K, M);
 
-    //rt->train(&dataManager,*parameters);
     rt->train(dataManager);
     rt->save(treeFile.c_str());
     
@@ -120,7 +99,7 @@ void trainRT(string &inFile, string &treeFile, int nMin, int K, int M){
     }
     
     //delete parameters;
-    //delete rt;
+    delete rt;
     //delete dataManager;
 }
 
@@ -242,13 +221,14 @@ int main(int argc, char ** argv){
         return -1;
     }
 
-
-    ifstream treeFileCheck(treeFile);
-    if(!treeFileCheck.is_open()){
-      cerr << "ERROR: File \""<<treeFile << "\" not found" << endl;
-      return -1;
+    if (mode == MODE_CLASSIF){
+      ifstream treeFileCheck(treeFile);
+      if(!treeFileCheck.is_open()){
+	cerr << "ERROR: File \""<<treeFile << "\" not found" << endl;
+	return -1;
+      }    
+      treeFileCheck.close();
     }
-    treeFileCheck.close();
 
     ifstream inFileCheck(inFile);
     if(!inFileCheck.is_open()){
