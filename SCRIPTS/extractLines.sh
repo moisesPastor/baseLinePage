@@ -10,7 +10,7 @@ fi
 #set -n : Read commands but do not execute them. This may be used to check a shell script for syntax errors.
 #set -e stop the script if an error occurs
 
-PATH=$PATH:../../BIN:.
+PATH=$PATH:${HOME}/baseLinePage/BIN:
 #DIN=${2/\//}
 DIN=${2}
 #DOUT=${3/\//}
