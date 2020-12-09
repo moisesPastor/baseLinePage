@@ -221,15 +221,6 @@ int main(int argc, char ** argv){
         return -1;
     }
 
-    if (mode == MODE_CLASSIF){
-      ifstream treeFileCheck(treeFile);
-      if(!treeFileCheck.is_open()){
-	cerr << "ERROR: File \""<<treeFile << "\" not found" << endl;
-	return -1;
-      }    
-      treeFileCheck.close();
-    }
-
     ifstream inFileCheck(inFile);
     if(!inFileCheck.is_open()){
       cerr << "ERROR: File \""<<inFile << "\" not found" << endl;
@@ -242,6 +233,14 @@ int main(int argc, char ** argv){
             trainRT(inFile, treeFile, nMin, K, M);
             break;
         case MODE_CLASSIF:{
+
+	  ifstream treeFileCheck(treeFile);
+	  if(!treeFileCheck.is_open()){
+	    cerr << "ERROR: File \""<<treeFile << "\" not found" << endl;
+	    return -1;
+	  }
+	  treeFileCheck.close();
+	  
 	  vector<string> files;
 	  
 	  if(inFile.size()!=0)
