@@ -15,12 +15,13 @@ PATH=$PATH:${HOME}/baseLinePage/BIN:
 DIN=${2}
 #DOUT=${3/\//}
 DOUT=${3}
-
+EXT=jpg
 
 for file in `cat $1`; do
      Nom=`basename $file .$EXT`
      NOM_IN=`echo -e ${DIN}"/"${Nom}`
      NOM_OUT=`echo -e ${DOUT}"/"${Nom}`
      #echo -e $NOM" "`lineExtractor -x ${NOM}.xml -i ${NOM}.jpg -t -v 1`
-     echo -e $NOM_IN" "`lineExtractor -x ${NOM_IN}.xml -i ${NOM_IN}.jpg -o ${NOM_OUT}.jpg -v 1`
+     echo -e $NOM_IN" "`lineExtractor -x ${NOM_IN}.xml -i ${NOM_IN}.jpg -o ${NOM_OUT} -v 1`
+
 done
