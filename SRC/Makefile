@@ -18,7 +18,7 @@ baseLinePage:
 	cp clusterLinies/mdbscan imageLocalExtrema/imageLocalExtrema Randomized_Trees/rand_trees labelPointsFromBaselines/labelPointsFromBaselines pointsToClassifierData drawBaselines lineExtractor/lineExtractor TranskribusBaseLineEvaluationScheme-0.1.3-jar-with-dependencies.jar ../BIN
 
 GTTool:
-	/usr/lib/qt5/bin/qmake -o GT_Tool_PAGE_Points/Makefile GT_Tool_PAGE_Points/GT_Tool_PAGE_Points.pro
+	qmake -o GT_Tool_PAGE_Points/Makefile GT_Tool_PAGE_Points/GT_Tool_PAGE_Points.pro
 	make  -C GT_Tool_PAGE_Points/ 
 	cp GT_Tool_PAGE_Points/GT_Tool_PAGE_Points ../BIN
 
