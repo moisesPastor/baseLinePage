@@ -126,7 +126,13 @@ void trainRT(string &inFile, string &treeFile, int nMin, int K, int M){
 
 
 void classifyRT( vector<string> & files, string &treeFile, float minProb){
-    Ptr<RTrees> rt = RTrees::load(treeFile.c_str());
+  Ptr<RTrees> rt = NULL;
+  try{
+    rt = RTrees::load(treeFile.c_str());
+  } catch (cv::Exception e){
+    cerr << "ERROR reading " << treeFile.c_str() << endl;
+    exit(-1);
+  }
 
   for(int i=0;i<files.size();i++){
     //CvMLData dataManager;
@@ -256,14 +262,7 @@ int main(int argc, char ** argv){
         case MODE_TRAIN:
             trainRT(inFile, treeFile, nMin, K, M);
             break;
-        case MODE_CLASSIF:{
-      	    ifstream treeFileCheck(treeFile);
-            if(!treeFileCheck.is_open()){
-   		cerr << "ERROR: File \""<<treeFile << "\" not found" << endl;
-		return -1;
-            }    
-            treeFileCheck.close();
-   
+        case MODE_CLASSIF:{      	   
 	    vector<string> files;
 	  
 	    if(inFile.size()!=0)
