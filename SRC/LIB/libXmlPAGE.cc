@@ -218,7 +218,7 @@ void updateXml(pugi::xml_document & page,  std::vector< std::vector< std::vector
       
       pugi::xml_attribute id_attr = line.append_attribute("id");
       stringstream ss;
-      ss << "l" << n_reg<<"_"<< setw(2) << setfill('0') << l;
+      ss << "r" << n_reg<<"_l"<< setw(2) << setfill('0') << l;
       id_attr.set_value(ss.str().c_str());
       
       pugi::xml_node line_coords=line.append_child("Coords");

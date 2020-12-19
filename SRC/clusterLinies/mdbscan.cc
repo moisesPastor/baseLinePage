@@ -759,7 +759,7 @@ int main(int argc,char** argv ) {
     // no regions given
     pugi::xml_node reg = page.child("PcGts").child("Page").append_child("TextRegion");
     pugi::xml_attribute id_attr = reg.append_attribute("id");
-    id_attr.set_value("r1");
+    id_attr.set_value("r0");
     pugi::xml_node reg_coords=reg.append_child("Coords");
     pugi::xml_attribute reg_points_attr = reg_coords.append_attribute("points");
     stringstream reg_coord;
