@@ -239,7 +239,7 @@ vector<Point>  millorCami(Mat & rotada, vector< LineStruct>  & lines_rotades){
 
     int y_up= marges[x].y_min;
     int y_down= marges[x].y_max;
-    int marge=(int)(y_down-y_up)*0.15 + 0.5;
+    int marge=(int)(y_down-y_up)*0.25 + 0.5;
     //marge=0;
     for (int y = y_up+1; y< y_down-marge; y++) {
       int punt=y*rotada.cols + x;
@@ -518,11 +518,12 @@ void pintaLinies(Mat & img, bool deBatABat,  vector <LineStruct>  lines,vector< 
   //pinta el poligon al voltant de les frases
   int x_ini=0;
   int x_fi=img.cols-1;
-    
+  deBatABat=false;
+  
     //per a la primera linia
      if (!deBatABat){
        x_ini=lines[0].linePoints[0].x - MARGE;
-      	if (x_ini < 0) x_ini=0;	
+       if (x_ini < 0) x_ini=0;	
 
 	x_fi=lines[0].linePoints[lines[0].linePoints.size()-1].x+MARGE;
       	if (x_fi > img.cols) x_fi=img.cols-1;
@@ -559,7 +560,7 @@ void use (char * programName){
   cerr << "      options:" << endl;
   cerr << "             -x #String; inputPageXmlFile" << endl;
   cerr << "             -i #String;  inputImageFile" << endl;
-  cerr << "             -r #int; final number of rows (by default 64)]" << endl;
+  cerr << "             -r #int; final number of rows (by default 64). -1 original size]" << endl;
   //cerr << "             [-l #int line to be extracted (by default all)]" << endl;
   cerr << "             [-o #String ] outputImageFile " << endl;
   cerr << "             [-d ] demo (by default false)" << endl;
@@ -571,71 +572,80 @@ void use (char * programName){
 
 Mat cropVertical(Mat & image){
 
-   vector<vector<Point> > contours;
-   vector<Vec4i> hierarchy;
-
-   Mat img(image.size(), image.type());
-
-   int pad=3;
-   copyMakeBorder( image, img, pad, pad, pad,  pad , BORDER_CONSTANT, Scalar(255) );
-
-   cv::threshold( img,img, 0, 255, THRESH_BINARY  | THRESH_OTSU);
+  vector<vector<Point> > contours;
+  vector<Vec4i> hierarchy;
+  
+  Mat img(image.size(), image.type());
+  
+  int pad=3;
+  copyMakeBorder( image, img, pad, pad, pad,  pad , BORDER_CONSTANT, Scalar(255) );
+  
+  cv::threshold( img,img, 0, 255, THRESH_BINARY  | THRESH_OTSU);
+  
    
-   
-   Mat img2(image.size(), image.type());
-   img.copyTo(img2);
-
-   cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT , cv::Size(7, 3));
-   cv::erode(img, img, element);
- 
-   findContours(img, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE, Point(0, 0) );
-
+  Mat img2(image.size(), image.type());
+  img.copyTo(img2);
+  
+  cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT , cv::Size(7, 3));
+  cv::erode(img, img, element);
+  
+  findContours(img, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE, Point(0, 0) );
   
    /// Find the convex hull object for each contour
-   vector<vector<Point> >hull( contours.size() );
+  vector<vector<Point> >hull( contours.size() );
+  vector<Point> contour;
+  float superficieMax=0;
+  int contourMaxSuperficie=1;
 
-   vector<Point> contour;
-   float superficieMax=0;
-   int contourMaxSuperficie=1;
-   for( uint i = 0; i < contours.size(); i++ )  {
-     
-     if ( hierarchy[i][3] != -1 && contours[i].size() > 4){
-       convexHull( Mat(contours[i]), hull[i] );
-       approxPolyDP(Mat(hull[i]), contour, 0.001, true);
-       float sup =  contourArea(hull[i]);
-       if (sup > superficieMax){
-         superficieMax=sup;
-         contourMaxSuperficie = i;
-       }
-     }
-   }
-   
-     int altura = -1;
-     int y_orig = 0;
-     int max_y=-1, min_y=100000;
-     
-     for (uint h = 0; h < hull[contourMaxSuperficie].size(); h++) {
-       int y = hull[contourMaxSuperficie][h].y;
-       if (y > max_y) max_y = y;
-       if (y < min_y) min_y = y;
-     }
-     
-     if (max_y-min_y > altura){
-       altura = max_y-min_y;
-       y_orig = min_y;
-     }
-     //   }
-     // }
+  for( uint i = 0; i < contours.size(); i++ )  {     
+    if ( hierarchy[i][3] != -1 && contours[i].size() > 8){
+      convexHull( Mat(contours[i]), hull[i] );
+      approxPolyDP(Mat(hull[i]), contour, 0.001, true);
+      float sup =  contourArea(hull[i]);
+      int y_max=0, y_min=img.rows-1;
+      int x_max=0, x_min=img.cols-1;
+      for (uint h = 0; h < hull[i].size(); h++){
+	int y = hull[i][h].y;
+	int x = hull[i][h].x;
+	if (y > y_max) y_max = y;
+	if (y < y_min) y_min = y;
+	if (x > x_max) x_max = x;
+	if (x < x_min) x_min = x;
+      }
 
-     altura = altura > -1 ? altura: img.rows;
+      float asp_ratio =  ((y_max - y_min) / (float)(x_max -x_min));
+      if (sup > superficieMax && asp_ratio > 0.2){
+	superficieMax=sup;
+	contourMaxSuperficie = i;
+      }      
+    }
+  }
+ 
+  
+  int altura = -1;
+  int y_orig = 0;
+  int max_y=-1, min_y=100000;
+  
+  for (uint h = 0; h < hull[contourMaxSuperficie].size(); h++) {
+    int y = hull[contourMaxSuperficie][h].y;
+    if (y > max_y) max_y = y;
+    if (y < min_y) min_y = y;
+  }
+     
+  if (max_y-min_y > altura){
+    altura = max_y-min_y;
+    y_orig = min_y;
+  }
+  
+  altura = altura > -1 ? altura: img.rows;
        
-    y_orig = y_orig - pad >= 0 ? y_orig-pad: 0;
-    altura = altura + y_orig < image.rows ? altura: image.rows - y_orig;
-    Rect rectCrop(0, y_orig, image.cols-1, altura);       
-    image = Mat(image, rectCrop);
+  y_orig = y_orig - pad >= 0 ? y_orig-pad: 0;
+  altura = altura + y_orig < image.rows ? altura: image.rows - y_orig;
+  Rect rectCrop(0, y_orig, image.cols-1, altura);       
+  image = Mat(image, rectCrop);
+  
 
-
-   return image;
+  return image;
 }
 
 //----------------------------------------------------------
@@ -874,9 +884,7 @@ int main(int argc,char** argv ) {
 	if ( seg_lines[seg].find(x) != seg_lines[seg].end())
 	  for (int y = seg_lines[seg][x]; y < seg_lines[seg+1][x]; y++) 
 	    if ( y < img_rotated.rows)
-	      img_lin.at<uchar>(y-y_min, x-xini) = img_rotated.at<uchar>(y,x);	          
-      
-
+	      img_lin.at<uchar>(y-y_min, x-xini) = img_rotated.at<uchar>(y,x); 
 
       if (!deBatABat){
 	int x = lines[seg].linePoints[0].x;
@@ -893,14 +901,19 @@ int main(int argc,char** argv ) {
 	outFileName_line << inFileName; 
       }
 
+
+      //      text_region.child("Coords").attribute("points").value();
+      //      outFileName_line  << text_region.attribute("id").value();
       //outFileName_line <<"_"<< num_linea_str.str()<< "_"<< lines[cont_lin].name << ".jpg";
       outFileName_line << "_" << lines[cont_lin].name << ".jpg";
       cont_lin++;
 
 
       img_lin = cropVertical(img_lin);
-      float factor=float(finalNumberRows)/img_lin.rows;
-      cv::resize(img_lin, img_lin, cv::Size(int(img_lin.cols*factor), finalNumberRows), 0, 0, INTER_LANCZOS4);// CV_INTER_LINEAR);
+      if (finalNumberRows > 0){
+	float factor=float(finalNumberRows)/img_lin.rows;
+	cv::resize(img_lin, img_lin, cv::Size(int(img_lin.cols*factor), finalNumberRows), 0, 0, INTER_LANCZOS4);// CV_INTER_LINEAR);
+      }
 
       bool write_result=false;
       try{
